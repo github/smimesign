@@ -19,12 +19,14 @@ var (
 	armorFlag      = getopt.BoolLong("armor", 'a', "create ascii armored output")
 	statusFdOpt    = getopt.IntLong("status-fd", 0, -1, "Write special status strings to the file descriptor n.", "n")
 	keyFormatOpt   = getopt.EnumLong("keyid-format", 0, []string{"short", "0xshort", "long", "0xlong"}, "short", "Select  how  to  display key IDs.", "{short|0xshort|long|0xlong}")
+	fileArgs       []string
 )
 
 func main() {
 	getopt.HelpColumn = 30
 	getopt.SetParameters("[files]")
 	getopt.Parse()
+	fileArgs = getopt.Args()
 
 	status := 1
 	if *helpFlag {
