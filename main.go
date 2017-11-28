@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/mastahyeti/certstore"
 	"github.com/pborman/getopt/v2"
 )
 
@@ -20,9 +21,19 @@ var (
 	statusFdOpt    = getopt.IntLong("status-fd", 0, -1, "Write special status strings to the file descriptor n.", "n")
 	keyFormatOpt   = getopt.EnumLong("keyid-format", 0, []string{"short", "0xshort", "long", "0xlong"}, "short", "Select  how  to  display key IDs.", "{short|0xshort|long|0xlong}")
 	fileArgs       []string
+
+	store certstore.Store
 )
 
 func main() {
+	// Open certificate store
+	var err error
+	if store, err = certstore.Open(); err != nil {
+		panic(err)
+	}
+	defer store.Close()
+
+	// Parse CLI args
 	getopt.HelpColumn = 30
 	getopt.SetParameters("[files]")
 	getopt.Parse()
