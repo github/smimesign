@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/sha1"
 	"crypto/x509"
+	"encoding/asn1"
 	"encoding/hex"
 	"strings"
 )
@@ -65,6 +66,11 @@ func normalizeEmail(email string) string {
 
 	return ""
 }
+
+var (
+	oidEmailAddress = asn1.ObjectIdentifier{1, 2, 840, 113549, 1, 9, 1}
+	oidCommonName   = asn1.ObjectIdentifier{2, 5, 4, 3}
+)
 
 // certHasEmail checks if a certificate contains the given email address in its
 // subject (CN/emailAddress) or SAN fields.

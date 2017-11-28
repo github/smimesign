@@ -54,7 +54,7 @@ func verifyAttached() int {
 	}
 
 	// Verify signature
-	if err = sd.Verify(); err != nil {
+	if _, err = sd.Verify(cms.UnsafeNoVerify); err != nil {
 		fmt.Printf("Sinature verification failed: %s\n", err.Error())
 		return 1
 	}
@@ -105,7 +105,7 @@ func verifyDetached() int {
 	if _, err = io.Copy(buf, f); err != nil {
 		panic(err)
 	}
-	if err = sd.VerifyDetached(buf.Bytes()); err != nil {
+	if _, err = sd.VerifyDetached(buf.Bytes(), cms.UnsafeNoVerify); err != nil {
 		fmt.Printf("Sinature verification failed: %s\n", err.Error())
 		return 1
 	}

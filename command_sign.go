@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"encoding/asn1"
 	"encoding/pem"
 	"fmt"
 	"io"
@@ -11,11 +10,6 @@ import (
 
 	"github.com/mastahyeti/certstore"
 	"github.com/mastahyeti/cms"
-)
-
-var (
-	oidEmailAddress = asn1.ObjectIdentifier{1, 2, 840, 113549, 1, 9, 1}
-	oidCommonName   = asn1.ObjectIdentifier{2, 5, 4, 3}
 )
 
 func commandSign() int {
@@ -42,7 +36,7 @@ func commandSign() int {
 		return 1
 	}
 
-	cert, err := userIdent.Certificate()
+	chain, err := userIdent.CertificateChain()
 	if err != nil {
 		panic(err)
 	}
@@ -59,16 +53,16 @@ func commandSign() int {
 
 	var der []byte
 	if *detachSignFlag {
-		der, err = cms.SignDetached(dataBuf.Bytes(), cert, signer)
+		der, err = cms.SignDetached(dataBuf.Bytes(), chain, signer)
 	} else {
-		der, err = cms.Sign(dataBuf.Bytes(), cert, signer)
+		der, err = cms.Sign(dataBuf.Bytes(), chain, signer)
 	}
 	if err != nil {
 		panic(err)
 	}
 
 	// SIG_CREATED
-	emitSigCreated(cert, *detachSignFlag)
+	emitSigCreated(chain[0], *detachSignFlag)
 
 	if *armorFlag {
 		err = pem.Encode(os.Stdout, &pem.Block{
