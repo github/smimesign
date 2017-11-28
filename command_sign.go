@@ -13,12 +13,6 @@ import (
 )
 
 func commandSign() int {
-	store, err := certstore.Open()
-	if err != nil {
-		panic(err)
-	}
-	defer store.Close()
-
 	idents, err := store.Identities()
 	if err != nil {
 		panic(err)

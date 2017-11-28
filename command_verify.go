@@ -2,11 +2,13 @@ package main
 
 import (
 	"bytes"
+	"crypto/x509"
 	"encoding/pem"
 	"fmt"
 	"io"
 	"os"
 
+	"github.com/certifi/gocertifi"
 	"github.com/mastahyeti/cms"
 )
 
@@ -54,7 +56,7 @@ func verifyAttached() int {
 	}
 
 	// Verify signature
-	if _, err = sd.Verify(cms.UnsafeNoVerify); err != nil {
+	if _, err = sd.Verify(rootsPool()); err != nil {
 		fmt.Printf("Sinature verification failed: %s\n", err.Error())
 		return 1
 	}
@@ -105,11 +107,36 @@ func verifyDetached() int {
 	if _, err = io.Copy(buf, f); err != nil {
 		panic(err)
 	}
-	if _, err = sd.VerifyDetached(buf.Bytes(), cms.UnsafeNoVerify); err != nil {
+	if _, err = sd.VerifyDetached(buf.Bytes(), rootsPool()); err != nil {
 		fmt.Printf("Sinature verification failed: %s\n", err.Error())
 		return 1
 	}
 
 	fmt.Println("Signature verified")
 	return 0
+}
+
+func rootsPool() *x509.CertPool {
+	roots, err := x509.SystemCertPool()
+	if err != nil {
+		// SystemCertPool isn't implemented for Windows. fall back to mozilla trust
+		// store.
+		roots, err = gocertifi.CACerts()
+		if err != nil {
+			// Fall back to an empty store. Verification will likely fail.
+			roots = x509.NewCertPool()
+		}
+	}
+
+	idents, err := store.Identities()
+	if err != nil {
+		return roots
+	}
+	for _, ident := range idents {
+		if cert, err := ident.Certificate(); err == nil {
+			roots.AddCert(cert)
+		}
+	}
+
+	return roots
 }
