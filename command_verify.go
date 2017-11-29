@@ -13,6 +13,8 @@ import (
 )
 
 func commandVerify() int {
+	sNewSig.emit()
+
 	if len(fileArgs) < 2 {
 		return verifyAttached()
 	}
@@ -56,12 +58,25 @@ func verifyAttached() int {
 	}
 
 	// Verify signature
-	if _, err = sd.Verify(rootsPool()); err != nil {
+	certs, err := sd.Verify(rootsPool())
+	if err != nil {
+		if len(certs) > 0 {
+			emitBadSig(certs)
+		} else {
+			// TODO: We're ommitting a bunch of arguments here.
+			sErrSig.emit()
+		}
+
 		fmt.Printf("Sinature verification failed: %s\n", err.Error())
 		return 1
 	}
 
-	fmt.Println("Signature verified")
+	emitGoodSig(certs)
+
+	// TODO: Maybe split up signature checking and certificate checking so we can
+	// output something more meaningful.
+	emitTrustFully()
+
 	return 0
 }
 
@@ -107,12 +122,26 @@ func verifyDetached() int {
 	if _, err = io.Copy(buf, f); err != nil {
 		panic(err)
 	}
-	if _, err = sd.VerifyDetached(buf.Bytes(), rootsPool()); err != nil {
+
+	certs, err := sd.VerifyDetached(buf.Bytes(), rootsPool())
+	if err != nil {
+		if len(certs) > 0 {
+			emitBadSig(certs)
+		} else {
+			// TODO: We're ommitting a bunch of arguments here.
+			sErrSig.emit()
+		}
+
 		fmt.Printf("Sinature verification failed: %s\n", err.Error())
 		return 1
 	}
 
-	fmt.Println("Signature verified")
+	emitGoodSig(certs)
+
+	// TODO: Maybe split up signature checking and certificate checking so we can
+	// output something more meaningful.
+	emitTrustFully()
+
 	return 0
 }
 

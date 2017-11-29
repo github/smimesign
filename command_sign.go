@@ -30,6 +30,11 @@ func commandSign() int {
 		return 1
 	}
 
+	// Git is looking for "\n[GNUPG:] SIG_CREATED ", meaning we need to print a
+	// line before SIG_CREATED. BEGING_SIGNING seems appropraite. GPG emits this,
+	// though GPGSM does not.
+	sBeginSigning.emit()
+
 	chain, err := userIdent.CertificateChain()
 	if err != nil {
 		panic(err)
@@ -55,7 +60,6 @@ func commandSign() int {
 		panic(err)
 	}
 
-	// SIG_CREATED
 	emitSigCreated(chain[0], *detachSignFlag)
 
 	if *armorFlag {

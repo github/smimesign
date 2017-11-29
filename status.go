@@ -19,6 +19,10 @@ import (
 type status string
 
 const (
+	// BEGIN_SIGNING
+	//   Mark the start of the actual signing process. This may be used as an
+	//   indication that all requested secret keys are ready for use.
+	sBeginSigning status = "BEGING_SIGNING"
 
 	// SIG_CREATED <type> <pk_algo> <hash_algo> <class> <timestamp> <keyfpr>
 	//   A signature has been created using these parameters.
@@ -54,44 +58,27 @@ const (
 	//   also be available for OpenPGP.
 	sGoodSig status = "GOODSIG"
 
-	// VALIDSIG <args>
+	// BADSIG <long_keyid_or_fpr> <username>
+	//   The signature with the keyid has not been verified okay. The username is
+	//   the primary one encoded in UTF-8 and %XX escaped. The fingerprint may be
+	//   used instead of the long keyid if it is available. This is the case with
+	//   CMS and might eventually also be available for OpenPGP.
+	sBadSig status = "BADSIG"
+
+	// ERRSIG <keyid> <pkalgo> <hashalgo> <sig_class> <time> <rc>
 	//
-	//     The args are:
+	//   It was not possible to check the signature. This may be caused by a
+	//   missing public key or an unsupported algorithm. A RC of 4 indicates
+	//   unknown algorithm, a 9 indicates a missing public key. The other fields
+	//   give more information about this signature. sig_class is a 2 byte hex-
+	//   value. The fingerprint may be used instead of the keyid if it is
+	//   available. This is the case with gpgsm and might eventually also be
+	//  available for OpenPGP.
 	//
-	//     - <fingerprint_in_hex>
-	//     - <sig_creation_date>
-	//     - <sig-timestamp>
-	//     - <expire-timestamp>
-	//     - <sig-version>
-	//     - <reserved>
-	//     - <pubkey-algo>
-	//     - <hash-algo>
-	//     - <sig-class>
-	//     - [ <primary-key-fpr> ]
-	//
-	//     This status indicates that the signature is cryptographically
-	//     valid. This is similar to GOODSIG, EXPSIG, EXPKEYSIG, or REVKEYSIG
-	//     (depending on the date and the state of the signature and signing
-	//     key) but has the fingerprint as the argument. Multiple status
-	//     lines (VALIDSIG and the other appropriate *SIG status) are emitted
-	//     for a valid signature.  All arguments here are on one long line.
-	//     sig-timestamp is the signature creation time in seconds after the
-	//     epoch. expire-timestamp is the signature expiration time in
-	//     seconds after the epoch (zero means "does not
-	//     expire"). sig-version, pubkey-algo, hash-algo, and sig-class (a
-	//     2-byte hex value) are all straight from the signature packet.
-	//     PRIMARY-KEY-FPR is the fingerprint of the primary key or identical
-	//     to the first argument.  This is useful to get back to the primary
-	//     key without running gpg again for this purpose.
-	//
-	//     The primary-key-fpr parameter is used for OpenPGP and not
-	//     available for CMS signatures.  The sig-version as well as the sig
-	//     class is not defined for CMS and currently set to 0 and 00.
-	//
-	//     Note, that *-TIMESTAMP may either be a number of seconds since
-	//     Epoch or an ISO 8601 string which can be detected by the presence
-	//     of the letter 'T'.
-	sValidSig status = "VALIDSIG"
+	//   Note, that TIME may either be the number of seconds since Epoch or an ISO
+	//   8601 string. The latter can be detected by the presence of the letter
+	//   ‘T’.
+	sErrSig status = "ERRSIG"
 
 	// TRUST_
 	//   These are several similar status codes:
@@ -119,18 +106,7 @@ const (
 	//
 	//   Note that the term =TRUST_= in the status names is used for
 	//   historic reasons; we now speak of validity.
-	sTrustUndefined status = "TRUST_UNDEFINED"
-	sTrustNever     status = "TRUST_NEVER"
-	sTrustMarginal  status = "TRUST_MARGINAL"
-	sTrustFully     status = "TRUST_FULLY"
-	sTrustUltimate  status = "TRUST_ULTIMATE"
-
-	// VERIFICATION_COMPLIANCE_MODE <flags>
-	//     Indicates that the current signature verification operation is in
-	//     compliance with the given set of modes.  "flags" is a space
-	//     separated list of numerical flags, see "Field 18 - Compliance
-	//     flags" above.
-	sVerificationComplianceMode = "VERIFICATION_COMPLIANCE_MODE"
+	sTrustFully status = "TRUST_FULLY"
 )
 
 var (
@@ -138,7 +114,7 @@ var (
 	statusFile  *os.File
 )
 
-func (s status) emit(format string, args ...interface{}) {
+func (s status) emitf(format string, args ...interface{}) {
 	setupStatus.Do(func() {
 		if *statusFdOpt > 0 {
 			// TODO: debugging output if this fails
@@ -154,6 +130,22 @@ func (s status) emit(format string, args ...interface{}) {
 	statusFile.WriteString(prefix)
 	statusFile.WriteString(string(s))
 	fmt.Fprintf(statusFile, " "+format+"\n", args...)
+}
+
+func (s status) emit() {
+	setupStatus.Do(func() {
+		if *statusFdOpt > 0 {
+			// TODO: debugging output if this fails
+			statusFile = os.NewFile(uintptr(*statusFdOpt), "status")
+		}
+	})
+
+	if statusFile == nil {
+		return
+	}
+
+	const prefix = "[GNUPG:] "
+	statusFile.WriteString(prefix + string(s) + "\n")
 }
 
 func emitSigCreated(cert *x509.Certificate, isDetached bool) {
@@ -194,5 +186,23 @@ func emitSigCreated(cert *x509.Certificate, isDetached bool) {
 	now = time.Now().Unix()
 	fpr = certHexFingerprint(cert)
 
-	sSigCreated.emit("%s %d %d %02x %d %s", sigType, pkAlgo, hashAlgo, sigClass, now, fpr)
+	sSigCreated.emitf("%s %d %d %02x %d %s", sigType, pkAlgo, hashAlgo, sigClass, now, fpr)
+}
+
+func emitGoodSig(certs []*x509.Certificate) {
+	subj := RDNSequenceString(certs[0].Subject.ToRDNSequence())
+	fpr := certHexFingerprint(certs[0])
+
+	sGoodSig.emitf("%s %s", fpr, subj)
+}
+
+func emitBadSig(certs []*x509.Certificate) {
+	subj := RDNSequenceString(certs[0].Subject.ToRDNSequence())
+	fpr := certHexFingerprint(certs[0])
+
+	sBadSig.emitf("%s %s", fpr, subj)
+}
+
+func emitTrustFully() {
+	sTrustFully.emitf("0 shell")
 }
