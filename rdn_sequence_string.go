@@ -40,27 +40,28 @@ import (
 //     OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 var attributeTypeNames = map[string]string{
-	"2.5.4.6":  "C",
-	"2.5.4.10": "O",
-	"2.5.4.11": "OU",
-	"2.5.4.3":  "CN",
-	"2.5.4.5":  "SERIALNUMBER",
-	"2.5.4.7":  "L",
-	"2.5.4.8":  "ST",
-	"2.5.4.9":  "STREET",
-	"2.5.4.17": "POSTALCODE",
+	"2.5.4.6":              "C",
+	"2.5.4.10":             "O",
+	"2.5.4.11":             "OU",
+	"2.5.4.3":              "CN",
+	"2.5.4.5":              "SERIALNUMBER",
+	"2.5.4.7":              "L",
+	"2.5.4.8":              "ST",
+	"2.5.4.9":              "STREET",
+	"2.5.4.17":             "POSTALCODE",
+	"1.2.840.113549.1.9.1": "EMAIL",
 }
 
 // The orignal code can be found at https://git.io/vbUMS
 //
 // String implements the fmt.Stringer interface. It loosely follows the
 // string conversion rules for Distinguished Names from RFC 2253.
-func RDNSequenceString(r pkix.RDNSequence) string {
+func rdnSequenceString(r pkix.RDNSequence) string {
 	s := ""
 	for i := 0; i < len(r); i++ {
 		rdn := r[len(r)-1-i]
 		if i > 0 {
-			s += ","
+			s += ", "
 		}
 		for j, tv := range rdn {
 			if j > 0 {

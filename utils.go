@@ -6,6 +6,7 @@ import (
 	"crypto/x509"
 	"encoding/asn1"
 	"encoding/hex"
+	"regexp"
 	"strings"
 )
 
@@ -75,27 +76,34 @@ var (
 // certHasEmail checks if a certificate contains the given email address in its
 // subject (CN/emailAddress) or SAN fields.
 func certHasEmail(cert *x509.Certificate, email string) bool {
-	if len(email) == 0 {
-		return false
-	}
-
-	// Check SAN
-	for _, other := range cert.EmailAddresses {
+	for _, other := range certEmails(cert) {
 		if other == email {
 			return true
 		}
 	}
 
-	// Check CN and emailAddress fields in cert subject.
+	return false
+}
+
+// borrowed from http://emailregex.com/
+var emailRegexp = regexp.MustCompile(`(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)`)
+
+// certEmails extracts email addresses from a certificate's subject
+// (CN/emailAddress) and SAN extensions.
+func certEmails(cert *x509.Certificate) []string {
+	// From SAN
+	emails := cert.EmailAddresses
+
+	// From CN and emailAddress fields in subject.
 	for _, name := range cert.Subject.Names {
 		if !name.Type.Equal(oidEmailAddress) && !name.Type.Equal(oidCommonName) {
 			continue
 		}
 
-		if other, isStr := name.Value.(string); isStr && other == email {
-			return true
+		if email, isStr := name.Value.(string); isStr && emailRegexp.MatchString(email) {
+			emails = append(emails, email)
 		}
 	}
 
-	return false
+	return emails
 }
