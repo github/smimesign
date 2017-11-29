@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"crypto/x509"
 	"encoding/pem"
-	"fmt"
 	"io"
 	"os"
 
@@ -12,17 +11,17 @@ import (
 	"github.com/mastahyeti/cms"
 )
 
-func commandVerify() int {
+func commandVerify() {
 	sNewSig.emit()
 
 	if len(fileArgs) < 2 {
-		return verifyAttached()
+		verifyAttached()
+	} else {
+		verifyDetached()
 	}
-
-	return verifyDetached()
 }
 
-func verifyAttached() int {
+func verifyAttached() {
 	var (
 		f   *os.File
 		err error
@@ -31,7 +30,7 @@ func verifyAttached() int {
 	// Read in signature
 	if len(fileArgs) == 1 {
 		if f, err = os.Open(fileArgs[0]); err != nil {
-			panic(err)
+			failef(err, "failed to open signature file (%s)", fileArgs[0])
 		}
 		defer f.Close()
 	} else {
@@ -40,7 +39,7 @@ func verifyAttached() int {
 
 	buf := new(bytes.Buffer)
 	if _, err = io.Copy(buf, f); err != nil {
-		panic(err)
+		faile(err, "failed to read signature")
 	}
 
 	// Try decoding as PEM
@@ -54,7 +53,7 @@ func verifyAttached() int {
 	// Parse signature
 	sd, err := cms.ParseSignedData(der)
 	if err != nil {
-		panic(err)
+		faile(err, "failed to parse signature")
 	}
 
 	// Verify signature
@@ -67,8 +66,7 @@ func verifyAttached() int {
 			sErrSig.emit()
 		}
 
-		fmt.Printf("Sinature verification failed: %s\n", err.Error())
-		return 1
+		faile(err, "failed to verify signature")
 	}
 
 	emitGoodSig(certs)
@@ -76,21 +74,19 @@ func verifyAttached() int {
 	// TODO: Maybe split up signature checking and certificate checking so we can
 	// output something more meaningful.
 	emitTrustFully()
-
-	return 0
 }
 
-func verifyDetached() int {
+func verifyDetached() {
 	// Read in signature
 	f, err := os.Open(fileArgs[0])
 	if err != nil {
-		panic(err)
+		failef(err, "failed to open signature file (%s)", fileArgs[0])
 	}
 	defer f.Close()
 
 	buf := new(bytes.Buffer)
 	if _, err = io.Copy(buf, f); err != nil {
-		panic(err)
+		faile(err, "failed to read signature file")
 	}
 
 	// Try decoding as PEM
@@ -104,7 +100,7 @@ func verifyDetached() int {
 	// Parse signature
 	sd, err := cms.ParseSignedData(der)
 	if err != nil {
-		panic(err)
+		faile(err, "failed to parse signature")
 	}
 
 	// Read in signed data
@@ -112,7 +108,7 @@ func verifyDetached() int {
 		f = os.Stdin
 	} else {
 		if f, err = os.Open(fileArgs[1]); err != nil {
-			panic(err)
+			failef(err, "failed to open message file (%s)", fileArgs[1])
 		}
 		defer f.Close()
 	}
@@ -120,7 +116,7 @@ func verifyDetached() int {
 	// Verify signature
 	buf.Reset()
 	if _, err = io.Copy(buf, f); err != nil {
-		panic(err)
+		faile(err, "failed to read message file")
 	}
 
 	certs, err := sd.VerifyDetached(buf.Bytes(), rootsPool())
@@ -132,8 +128,7 @@ func verifyDetached() int {
 			sErrSig.emit()
 		}
 
-		fmt.Printf("Sinature verification failed: %s\n", err.Error())
-		return 1
+		faile(err, "failed to verify signature")
 	}
 
 	emitGoodSig(certs)
@@ -141,8 +136,6 @@ func verifyDetached() int {
 	// TODO: Maybe split up signature checking and certificate checking so we can
 	// output something more meaningful.
 	emitTrustFully()
-
-	return 0
 }
 
 func rootsPool() *x509.CertPool {
@@ -157,10 +150,6 @@ func rootsPool() *x509.CertPool {
 		}
 	}
 
-	idents, err := store.Identities()
-	if err != nil {
-		return roots
-	}
 	for _, ident := range idents {
 		if cert, err := ident.Certificate(); err == nil {
 			roots.AddCert(cert)

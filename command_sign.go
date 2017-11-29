@@ -10,24 +10,16 @@ import (
 
 	"github.com/mastahyeti/certstore"
 	"github.com/mastahyeti/cms"
+	"github.com/pkg/errors"
 )
 
-func commandSign() int {
-	idents, err := store.Identities()
+func commandSign() {
+	userIdent, err := findUserIdentity()
 	if err != nil {
-		panic(err)
-	}
-	for _, ident := range idents {
-		defer ident.Close()
-	}
-
-	userIdent, err := findUserIdentity(idents)
-	if err != nil {
-		panic(err)
+		faile(err, "failed to get identity matching specified user-id")
 	}
 	if userIdent == nil {
-		fmt.Printf("Could not find identity matching specified user-id: %s\n", *localUserOpt)
-		return 1
+		failf("Could not find identity matching specified user-id: %s\n", *localUserOpt)
 	}
 
 	// Git is looking for "\n[GNUPG:] SIG_CREATED ", meaning we need to print a
@@ -37,17 +29,17 @@ func commandSign() int {
 
 	chain, err := userIdent.CertificateChain()
 	if err != nil {
-		panic(err)
+		faile(err, "failed to get idenity certificate chain")
 	}
 
 	signer, err := userIdent.Signer()
 	if err != nil {
-		panic(err)
+		faile(err, "failed to get idenity signer")
 	}
 
 	dataBuf := new(bytes.Buffer)
 	if _, err = io.Copy(dataBuf, os.Stdin); err != nil {
-		panic(err)
+		faile(err, "failed to read message from stdin")
 	}
 
 	var der []byte
@@ -57,7 +49,7 @@ func commandSign() int {
 		der, err = cms.Sign(dataBuf.Bytes(), chain, signer)
 	}
 	if err != nil {
-		panic(err)
+		faile(err, "failed to sign message")
 	}
 
 	emitSigCreated(chain[0], *detachSignFlag)
@@ -71,15 +63,13 @@ func commandSign() int {
 		_, err = os.Stdout.Write(der)
 	}
 	if err != nil {
-		panic(err)
+		fail("failed to write signature")
 	}
-
-	return 0
 }
 
 // findUserIdentity attempts to find an identity to sign with in the certstore
 // by checking available identities against the --local-user argument.
-func findUserIdentity(idents []certstore.Identity) (certstore.Identity, error) {
+func findUserIdentity() (certstore.Identity, error) {
 	var (
 		email string
 		fpr   []byte
@@ -98,7 +88,7 @@ func findUserIdentity(idents []certstore.Identity) (certstore.Identity, error) {
 	for _, ident := range idents {
 		cert, err := ident.Certificate()
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrap(err, "failed to get identity certificate")
 		}
 
 		if certHasEmail(cert, email) || certHasFingerprint(cert, fpr) {

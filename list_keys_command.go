@@ -5,19 +5,11 @@ import (
 	"strings"
 )
 
-func commandListKeys() int {
-	idents, err := store.Identities()
-	if err != nil {
-		panic(err)
-	}
-	for _, ident := range idents {
-		defer ident.Close()
-	}
-
+func commandListKeys() {
 	for j, ident := range idents {
 		cert, err := ident.Certificate()
 		if err != nil {
-			panic(err)
+			faile(err, "failed to get identity certificate")
 		}
 
 		if j > 0 {
@@ -32,6 +24,4 @@ func commandListKeys() int {
 		fmt.Println("  Subject:", rdnSequenceString(cert.Subject.ToRDNSequence()))
 		fmt.Println("   Emails:", strings.Join(certEmails(cert), ", "))
 	}
-
-	return 0
 }
