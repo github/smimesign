@@ -12,7 +12,9 @@ PKI is used in a variety of applications for encrypting or authenticating commun
 
 ## Installation
 
-...
+- Make sure you have the [Go compiler](https://golang.org/dl/) installed.
+- You'll probably want to put `$GOPATH/bin` on your `$PATH`.
+- Run `go get github.com/github/smimesign`
 
 ## Configuring Git
 
