@@ -48,3 +48,19 @@ $ git config --get user.email
 ```bash
 $ smimesign --list-keys
 ```
+
+## Smart cards (PIV/CAC/Yubikey)
+
+Many large organizations and government agencies distribute certificates and keys to end users via smart cards. These cards allow applications on the user's computer to use private keys for signing or encryption without giving them the ability to export those keys. The native certificate stores on both Windows and macOS can talk to smart cards, though special drivers or middleware may be required.
+
+If you can find your certificate in the Keychain Access app on macOS or in the Certificate Manager (`certmgr`) on Windows, it will probably work with smimesign. If you can't find it, you may need to install some drivers or middlware.
+
+### Yubikey
+
+Many Yubikey models support the PIV smart card interface. To get your operating system to discover certificates and keys on your Yubikey, you may have to install some additional software though.
+
+On Windows, you may need to install the [YubiKey Smart Card Minidriver](https://www.yubico.com/support/knowledge-base/categories/articles/smart-card-tools/) in order for the Yubikey to be recognized as a certifcate store.
+
+On macOS, you may need to install the [OpenSC middleware](https://github.com/OpenSC/OpenSC/releases/latest) in order for the Keychain to recognize your Yubikey. Installing this via homebrew or macports might [omit important components](https://discourse.brew.sh/t/opensc-formula-is-missing-the-opensc-tokend-component/1683/2) though, so it is recommended that you use the installer provided by OpenSC. To manage the manage certificates and keys on the Yubikey on macOS, you'll also need the [Yubikey PIV Manager](https://www.yubico.com/support/knowledge-base/categories/articles/smart-card-tools/) (GUI) or the [Yubikey PIV Tool](https://www.yubico.com/support/knowledge-base/categories/articles/smart-card-tools/) (command line).
+
+![Yubikey PIV Keychain in macOS Keychain Access app](https://user-images.githubusercontent.com/1144197/36266495-cd626c02-122e-11e8-839d-aa840e792a64.png)
