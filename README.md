@@ -57,10 +57,8 @@ If you can find your certificate in the Keychain Access app on macOS or in the C
 
 ### Yubikey
 
-Many Yubikey models support the PIV smart card interface. To get your operating system to discover certificates and keys on your Yubikey, you may have to install some additional software though.
+Many Yubikey models support the PIV smart card interface. To get your operating system to discover certificates and keys on your Yubikey, you may have to install the [OpenSC middleware](https://github.com/OpenSC/OpenSC/releases/latest). On macOS avoid installing OpenSC using homebrew, as it [omits an important component](https://discourse.brew.sh/t/opensc-formula-is-missing-the-opensc-tokend-component/1683/2). Instead use the installer provided by OpenSC or use the homebrew-cask formula.
 
-On Windows, you may need to install the [YubiKey Smart Card Minidriver](https://www.yubico.com/support/knowledge-base/categories/articles/smart-card-tools/) in order for the Yubikey to be recognized as a certifcate store.
-
-On macOS, you may need to install the [OpenSC middleware](https://github.com/OpenSC/OpenSC/releases/latest) in order for the Keychain to recognize your Yubikey. Installing this via homebrew or macports might [omit important components](https://discourse.brew.sh/t/opensc-formula-is-missing-the-opensc-tokend-component/1683/2) though, so it is recommended that you use the installer provided by OpenSC. To manage the manage certificates and keys on the Yubikey on macOS, you'll also need the [Yubikey PIV Manager](https://www.yubico.com/support/knowledge-base/categories/articles/smart-card-tools/) (GUI) or the [Yubikey PIV Tool](https://www.yubico.com/support/knowledge-base/categories/articles/smart-card-tools/) (command line).
+Additionally, to manage the manage certificates and keys on the Yubikey on macOS, you'll need the [Yubikey PIV Manager](https://www.yubico.com/support/knowledge-base/categories/articles/smart-card-tools/) (GUI) or the [Yubikey PIV Tool](https://www.yubico.com/support/knowledge-base/categories/articles/smart-card-tools/) (command line).
 
 ![Yubikey PIV Keychain in macOS Keychain Access app](https://user-images.githubusercontent.com/1144197/36266495-cd626c02-122e-11e8-839d-aa840e792a64.png)
