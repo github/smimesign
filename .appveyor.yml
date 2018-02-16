@@ -1,0 +1,32 @@
+skip_branch_with_pr: true
+
+environment:
+  GOPATH: $(HOMEDRIVE)$(HOMEPATH)\go
+  MSYSTEM: MINGW64
+
+clone_folder: $(GOPATH)\src\github.com\github/smimesign
+
+install:
+  - rd C:\Go /s /q
+  - cinst golang --version 1.9.4 -y
+  - cinst InnoSetup -y
+  - refreshenv
+  - ps: |
+      echo "Go directories in machine PATH environment:"
+      [environment]::GetEnvironmentVariable("PATH","Machine").split(";") | Select-String -Pattern "\\go\\"
+      echo "Go directories in user PATH environment:"
+      [environment]::GetEnvironmentVariable("PATH","User").split(";") | Select-String -Pattern "\\go\\"
+      echo "Go directories in process PATH environment:"
+      [environment]::GetEnvironmentVariable("PATH","Process").split(";") | Select-String -Pattern "\\go\\"
+      echo "Go version information:"
+      go version
+
+build_script:
+  - bash --login -c 'GOARCH=386 go build'
+  - mv smimesign.exe smimesign-x86.exe
+  - bash --login -c 'GOARCH=amd64 go build'
+  - mv smimesign.exe smimesign-x64.exe
+
+artifacts:
+  - path: smimesign-x86.exe
+  - path: smimesign-x64.exe
