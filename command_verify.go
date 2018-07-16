@@ -156,5 +156,8 @@ func verifyOpts() x509.VerifyOptions {
 		}
 	}
 
-	return x509.VerifyOptions{Roots: roots}
+	return x509.VerifyOptions{
+		Roots:     roots,
+		KeyUsages: allowedKeyUsages,
+	}
 }
