@@ -10,6 +10,10 @@ import (
 )
 
 var (
+	// default timestamp authority URL. This can be set at build time by running
+	// go build -ldflags "-X main.defaultTSA=${https://whatever}"
+	defaultTSA = ""
+
 	// Action flags
 	helpFlag     = getopt.BoolLong("help", 'h', "print this help message")
 	signFlag     = getopt.BoolLong("sign", 's', "make a signature")
@@ -20,8 +24,9 @@ var (
 	localUserOpt   = getopt.StringLong("local-user", 'u', "", "use USER-ID to sign", "USER-ID")
 	detachSignFlag = getopt.BoolLong("detach-sign", 'b', "make a detached signature")
 	armorFlag      = getopt.BoolLong("armor", 'a', "create ascii armored output")
-	statusFdOpt    = getopt.IntLong("status-fd", 0, -1, "Write special status strings to the file descriptor n.", "n")
-	keyFormatOpt   = getopt.EnumLong("keyid-format", 0, []string{"long"}, "long", "Select  how  to  display key IDs.", "{long}")
+	statusFdOpt    = getopt.IntLong("status-fd", 0, -1, "write special status strings to the file descriptor n.", "n")
+	keyFormatOpt   = getopt.EnumLong("keyid-format", 0, []string{"long"}, "long", "select  how  to  display key IDs.", "{long}")
+	tsaOpt         = getopt.StringLong("timestamp-authority", 't', defaultTSA, "URL of RFC3161 timestamp authority to use for timestamping")
 	fileArgs       []string
 
 	idents []certstore.Identity
