@@ -42,14 +42,26 @@ func commandSign() {
 		faile(err, "failed to read message from stdin")
 	}
 
-	var der []byte
-	if *detachSignFlag {
-		der, err = cms.SignDetached(dataBuf.Bytes(), chain, signer)
-	} else {
-		der, err = cms.Sign(dataBuf.Bytes(), chain, signer)
-	}
+	sd, err := cms.NewSignedData(dataBuf.Bytes())
 	if err != nil {
+		faile(err, "failed to create signed data")
+	}
+	if err := sd.Sign(chain, signer); err != nil {
 		faile(err, "failed to sign message")
+	}
+	if *detachSignFlag {
+		sd.Detached()
+	}
+
+	if len(*tsaOpt) > 0 {
+		if err = sd.AddTimestamps(*tsaOpt); err != nil {
+			faile(err, "failed to add timestamp")
+		}
+	}
+
+	der, err := sd.ToDER()
+	if err != nil {
+		faile(err, "failed to serialize signature")
 	}
 
 	emitSigCreated(chain[0], *detachSignFlag)
