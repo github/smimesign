@@ -20,8 +20,8 @@ func commandListKeys() {
 		fmt.Println("      S/N:", cert.SerialNumber.Text(16))
 		fmt.Println("Algorithm:", cert.SignatureAlgorithm.String())
 		fmt.Println(" Validity:", cert.NotBefore.String(), "-", cert.NotAfter.String())
-		fmt.Println("   Issuer:", rdnSequenceString(cert.Issuer.ToRDNSequence()))
-		fmt.Println("  Subject:", rdnSequenceString(cert.Subject.ToRDNSequence()))
+		fmt.Println("   Issuer:", cert.Issuer.ToRDNSequence().String())
+		fmt.Println("  Subject:", cert.Subject.ToRDNSequence().String())
 		fmt.Println("   Emails:", strings.Join(certEmails(cert), ", "))
 	}
 }
