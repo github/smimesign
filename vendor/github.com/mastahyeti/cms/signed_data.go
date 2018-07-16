@@ -13,7 +13,12 @@ type SignedData struct {
 
 // NewSignedData creates a new SignedData from the given data.
 func NewSignedData(data []byte) (*SignedData, error) {
-	psd, err := protocol.NewSignedData(data)
+	eci, err := protocol.NewDataEncapsulatedContentInfo(data)
+	if err != nil {
+		return nil, err
+	}
+
+	psd, err := protocol.NewSignedData(eci)
 	if err != nil {
 		return nil, err
 	}

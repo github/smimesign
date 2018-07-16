@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/mastahyeti/cms/oid"
 	"golang.org/x/crypto/pkcs12"
 )
 
@@ -22,7 +23,12 @@ func TestSignerInfo(t *testing.T) {
 
 	msg := []byte("hello, world!")
 
-	sd, err := NewSignedData(msg)
+	eci, err := NewEncapsulatedContentInfo(oid.Data, msg)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	sd, err := NewSignedData(eci)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -92,7 +98,7 @@ func TestEncapsulatedContentInfo(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	newECI, err := NewDataEncapsulatedContentInfo(oldData)
+	newECI, err := NewEncapsulatedContentInfo(oid.Data, oldData)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -133,13 +139,13 @@ func TestMessageDigestAttribute(t *testing.T) {
 
 	var oldAttr Attribute
 	for _, attr := range si.SignedAttrs {
-		if attr.Type.Equal(oidAttributeMessageDigest) {
+		if attr.Type.Equal(oid.AttributeMessageDigest) {
 			oldAttr = attr
 			break
 		}
 	}
 
-	newAttr, err := NewAttribute(oidAttributeMessageDigest, oldAttrVal)
+	newAttr, err := NewAttribute(oid.AttributeMessageDigest, oldAttrVal)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -175,13 +181,13 @@ func TestContentTypeAttribute(t *testing.T) {
 
 	var oldAttr Attribute
 	for _, attr := range si.SignedAttrs {
-		if attr.Type.Equal(oidAttributeContentType) {
+		if attr.Type.Equal(oid.AttributeContentType) {
 			oldAttr = attr
 			break
 		}
 	}
 
-	newAttr, err := NewAttribute(oidAttributeContentType, oldAttrVal)
+	newAttr, err := NewAttribute(oid.AttributeContentType, oldAttrVal)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -269,12 +275,20 @@ func testParseContentInfo(t *testing.T, ber []byte) {
 		t.Fatal(err)
 	}
 
-	if !sd.EncapContentInfo.EContentType.Equal(oidData) {
-		t.Fatalf("expected %s content, got %s", oidData.String(), sd.EncapContentInfo.EContentType.String())
+	if !sd.EncapContentInfo.IsTypeData() {
+		t.Fatal("expected id-data econtent")
 	}
 
-	if _, err = sd.EncapContentInfo.DataEContent(); err != nil {
+	if !sd.EncapContentInfo.EContentType.Equal(oid.Data) {
+		t.Fatalf("expected %s content, got %s", oid.Data.String(), sd.EncapContentInfo.EContentType.String())
+	}
+
+	data, err := sd.EncapContentInfo.DataEContent()
+	if err != nil {
 		t.Fatal(err)
+	}
+	if data != nil && len(data) == 0 {
+		t.Fatal("attached signature with zero length data")
 	}
 
 	for _, si := range sd.SignerInfos {
@@ -311,7 +325,7 @@ func testParseContentInfo(t *testing.T, ber []byte) {
 	}
 
 	// round trip contentInfo
-	der, err := ber2der(ber)
+	der, err := BER2DER(ber)
 	if err != nil {
 		t.Fatal(err)
 	}

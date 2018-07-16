@@ -189,16 +189,18 @@ func emitSigCreated(cert *x509.Certificate, isDetached bool) {
 	sSigCreated.emitf("%s %d %d %02x %d %s", sigType, pkAlgo, hashAlgo, sigClass, now, fpr)
 }
 
-func emitGoodSig(certs []*x509.Certificate) {
-	subj := certs[0].Subject.ToRDNSequence().String()
-	fpr := certHexFingerprint(certs[0])
+func emitGoodSig(chains [][][]*x509.Certificate) {
+	cert := chains[0][0][0]
+	subj := cert.Subject.ToRDNSequence().String()
+	fpr := certHexFingerprint(cert)
 
 	sGoodSig.emitf("%s %s", fpr, subj)
 }
 
-func emitBadSig(certs []*x509.Certificate) {
-	subj := certs[0].Subject.ToRDNSequence().String
-	fpr := certHexFingerprint(certs[0])
+func emitBadSig(chains [][][]*x509.Certificate) {
+	cert := chains[0][0][0]
+	subj := cert.Subject.ToRDNSequence().String
+	fpr := certHexFingerprint(cert)
 
 	sBadSig.emitf("%s %s", fpr, subj)
 }

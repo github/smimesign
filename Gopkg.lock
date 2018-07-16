@@ -18,9 +18,11 @@
   name = "github.com/mastahyeti/cms"
   packages = [
     ".",
-    "protocol"
+    "oid",
+    "protocol",
+    "timestamp"
   ]
-  revision = "f7ca628f60a8816d768b389e3a87fd91db2f7723"
+  revision = "88f9fea4900224804e36fd18aced191a11cc7dd6"
 
 [[projects]]
   branch = "master"

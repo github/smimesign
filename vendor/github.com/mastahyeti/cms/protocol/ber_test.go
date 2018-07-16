@@ -11,7 +11,7 @@ func TestBer2Der(t *testing.T) {
 	// indefinite length fixture
 	ber := []byte{0x30, 0x80, 0x02, 0x01, 0x01, 0x00, 0x00}
 	expected := []byte{0x30, 0x03, 0x02, 0x01, 0x01}
-	der, err := ber2der(ber)
+	der, err := BER2DER(ber)
 	if err != nil {
 		t.Fatalf("ber2der failed with error: %v", err)
 	}
@@ -19,7 +19,8 @@ func TestBer2Der(t *testing.T) {
 		t.Errorf("ber2der result did not match.\n\tExpected: % X\n\tActual: % X", expected, der)
 	}
 
-	if der2, err := ber2der(der); err != nil {
+	der2, err := BER2DER(der)
+	if err != nil {
 		t.Errorf("ber2der on DER bytes failed with error: %v", err)
 	} else {
 		if !bytes.Equal(der, der2) {
@@ -50,7 +51,7 @@ func TestBer2Der_Negatives(t *testing.T) {
 	}
 
 	for _, fixture := range fixtures {
-		_, err := ber2der(fixture.Input)
+		_, err := BER2DER(fixture.Input)
 		if err == nil {
 			t.Errorf("No error thrown. Expected: %s", fixture.ErrorContains)
 		}
@@ -65,7 +66,7 @@ func TestBer2Der_NestedMultipleIndefinite(t *testing.T) {
 	ber := []byte{0x30, 0x80, 0x30, 0x80, 0x02, 0x01, 0x01, 0x00, 0x00, 0x30, 0x80, 0x02, 0x01, 0x02, 0x00, 0x00, 0x00, 0x00}
 	expected := []byte{0x30, 0x0A, 0x30, 0x03, 0x02, 0x01, 0x01, 0x30, 0x03, 0x02, 0x01, 0x02}
 
-	der, err := ber2der(ber)
+	der, err := BER2DER(ber)
 	if err != nil {
 		t.Fatalf("ber2der failed with error: %v", err)
 	}
@@ -73,7 +74,8 @@ func TestBer2Der_NestedMultipleIndefinite(t *testing.T) {
 		t.Errorf("ber2der result did not match.\n\tExpected: % X\n\tActual: % X", expected, der)
 	}
 
-	if der2, err := ber2der(der); err != nil {
+	der2, err := BER2DER(der)
+	if err != nil {
 		t.Errorf("ber2der on DER bytes failed with error: %v", err)
 	} else {
 		if !bytes.Equal(der, der2) {

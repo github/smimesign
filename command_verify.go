@@ -57,10 +57,10 @@ func verifyAttached() {
 	}
 
 	// Verify signature
-	certs, err := sd.Verify(rootsPool())
+	chains, err := sd.Verify(verifyOpts())
 	if err != nil {
-		if len(certs) > 0 {
-			emitBadSig(certs)
+		if len(chains) > 0 {
+			emitBadSig(chains)
 		} else {
 			// TODO: We're ommitting a bunch of arguments here.
 			sErrSig.emit()
@@ -69,7 +69,7 @@ func verifyAttached() {
 		faile(err, "failed to verify signature")
 	}
 
-	emitGoodSig(certs)
+	emitGoodSig(chains)
 
 	// TODO: Maybe split up signature checking and certificate checking so we can
 	// output something more meaningful.
@@ -119,10 +119,10 @@ func verifyDetached() {
 		faile(err, "failed to read message file")
 	}
 
-	certs, err := sd.VerifyDetached(buf.Bytes(), rootsPool())
+	chains, err := sd.VerifyDetached(buf.Bytes(), verifyOpts())
 	if err != nil {
-		if len(certs) > 0 {
-			emitBadSig(certs)
+		if len(chains) > 0 {
+			emitBadSig(chains)
 		} else {
 			// TODO: We're ommitting a bunch of arguments here.
 			sErrSig.emit()
@@ -131,14 +131,14 @@ func verifyDetached() {
 		faile(err, "failed to verify signature")
 	}
 
-	emitGoodSig(certs)
+	emitGoodSig(chains)
 
 	// TODO: Maybe split up signature checking and certificate checking so we can
 	// output something more meaningful.
 	emitTrustFully()
 }
 
-func rootsPool() *x509.CertPool {
+func verifyOpts() x509.VerifyOptions {
 	roots, err := x509.SystemCertPool()
 	if err != nil {
 		// SystemCertPool isn't implemented for Windows. fall back to mozilla trust
@@ -156,5 +156,5 @@ func rootsPool() *x509.CertPool {
 		}
 	}
 
-	return roots
+	return x509.VerifyOptions{Roots: roots}
 }

@@ -18,7 +18,7 @@ der, _ := cms.Sign(msg, cert, key)
 //
 
 sd, _ := ParseSignedData(der)
-if err := sd.Verify(); err != nil {
+if err, _ := sd.Verify(x509.VerifyOptions{}); err != nil {
   panic(err)
 }
 ```
@@ -37,7 +37,22 @@ der, _ := cms.SignDetached(msg, cert, key)
 //
 
 sd, _ := ParseSignedData(der)
-if err := sd.VerifyDetached(msg); err != nil {
+if err, _ := sd.VerifyDetached(msg, x509.VerifyOptions{}); err != nil {
   panic(err)
 }
 ```
+
+## Timestamping
+
+Because certificates expire and can be revoked, it is may be helpful to attach certified timestamps to signatures, proving that they existed at a given time. RFC3161 timestamps can be added to signatures like so:
+
+```go
+signedData, _ := NewSignedData([]byte("Hello, world!"))
+signedData.Sign(identity.Chain(), identity.PrivateKey)
+signedData.AddTimestamps("http://timestamp.digicert.com")
+
+derEncoded, _ := signedData.ToDER()
+io.Copy(os.Stdout, bytes.NewReader(derEncoded))
+```
+
+Verification functions implicitly verify timestamps as well. Without a timestamp, verification will fail if the certificate is no longer valid.

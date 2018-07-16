@@ -4,46 +4,46 @@ import (
 	"bytes"
 	"crypto/x509"
 	"errors"
-	"fmt"
-)
 
-// UnsafeNoVerify instructs Verify and VerifyDetached not to verify signature's
-// associated certificates against any set of trusted roots.
-var UnsafeNoVerify = &x509.CertPool{}
+	"github.com/mastahyeti/cms/protocol"
+)
 
 // Verify verifies the SingerInfos' signatures. Each signature's associated
 // certificate is verified using the provided roots. UnsafeNoVerify may be
 // specified to skip this verification. Nil may be provided to use system roots.
-// The certificates whose keys made the signatures are returned regardless of
-// success.
-func (sd *SignedData) Verify(roots *x509.CertPool) ([]*x509.Certificate, error) {
-	data, err := sd.psd.EncapContentInfo.DataEContent()
+// The full chains for the certificates whose keys made the signatures are
+// returned.
+//
+// WARNING: this function doesn't do any revocation checking.
+func (sd *SignedData) Verify(opts x509.VerifyOptions) ([][][]*x509.Certificate, error) {
+	econtent, err := sd.psd.EncapContentInfo.EContentValue()
 	if err != nil {
 		return nil, err
 	}
-	if data == nil {
+	if econtent == nil {
 		return nil, errors.New("detached signature")
 	}
 
-	return sd.verify(data, roots)
+	return sd.verify(econtent, opts)
 }
 
 // VerifyDetached verifies the SingerInfos' detached signatures over the
-// provided message. Each signature's associated certificate is verified using
-// the provided roots. UnsafeNoVerify may be specified to skip this
-// verification. Nil may be provided to use system roots. The certificates whose
-// keys made the signatures are returned regardless of success.
-func (sd *SignedData) VerifyDetached(message []byte, roots *x509.CertPool) ([]*x509.Certificate, error) {
+// provided data message. Each signature's associated certificate is verified
+// using the provided roots. UnsafeNoVerify may be specified to skip this
+// verification. Nil may be provided to use system roots. The full chains for
+// the certificates whose keys made the signatures are returned.
+//
+// WARNING: this function doesn't do any revocation checking.
+func (sd *SignedData) VerifyDetached(message []byte, opts x509.VerifyOptions) ([][][]*x509.Certificate, error) {
 	if sd.psd.EncapContentInfo.EContent.Bytes != nil {
 		return nil, errors.New("signature not detached")
 	}
-
-	return sd.verify(message, roots)
+	return sd.verify(message, opts)
 }
 
-func (sd *SignedData) verify(message []byte, roots *x509.CertPool) ([]*x509.Certificate, error) {
+func (sd *SignedData) verify(econtent []byte, opts x509.VerifyOptions) ([][][]*x509.Certificate, error) {
 	if len(sd.psd.SignerInfos) == 0 {
-		return nil, errors.New("no signatures found")
+		return nil, protocol.ASN1Error{Message: "no signatures found"}
 	}
 
 	certs, err := sd.psd.X509Certificates()
@@ -51,42 +51,30 @@ func (sd *SignedData) verify(message []byte, roots *x509.CertPool) ([]*x509.Cert
 		return nil, err
 	}
 
-	verifyOpts := x509.VerifyOptions{
-		Intermediates: x509.NewCertPool(),
-		Roots:         roots,
-		KeyUsages: []x509.ExtKeyUsage{
-			x509.ExtKeyUsageEmailProtection,
-			x509.ExtKeyUsageCodeSigning,
-		},
+	if opts.Intermediates == nil {
+		opts.Intermediates = x509.NewCertPool()
 	}
 
 	for _, cert := range certs {
-		verifyOpts.Intermediates.AddCert(cert)
+		opts.Intermediates.AddCert(cert)
 	}
 
-	// Best effort attempt to gather all leaf certificates so we can return them
-	// regardless of success.
-	leafs := make([]*x509.Certificate, 0, len(sd.psd.SignerInfos))
-	for _, si := range sd.psd.SignerInfos {
-		if cert, err := si.FindCertificate(certs); err == nil {
-			leafs = append(leafs, cert)
-		}
-	}
+	chains := make([][][]*x509.Certificate, 0, len(sd.psd.SignerInfos))
 
 	for _, si := range sd.psd.SignerInfos {
 		var signedMessage []byte
 
 		// SignedAttrs is optional if EncapContentInfo eContentType isn't id-data.
 		if si.SignedAttrs == nil {
-			// If SignedAttrs is absent, validate that EncapContentInfo eContentType
-			// is id-data.
-			if _, err := sd.psd.EncapContentInfo.DataEContent(); err != nil {
-				return nil, err
+			// SignedAttrs may only be absent if EncapContentInfo eContentType is
+			// id-data.
+			if !sd.psd.EncapContentInfo.IsTypeData() {
+				return nil, protocol.ASN1Error{Message: "missing SignedAttrs"}
 			}
 
-			// If SignedAttrs is absent, the signature is over the original message
-			// itself.
-			signedMessage = message
+			// If SignedAttrs is absent, the signature is over the original
+			// encapsulated content itself.
+			signedMessage = econtent
 		} else {
 			// If SignedAttrs is present, we validate the mandatory ContentType and
 			// MessageDigest attributes.
@@ -94,21 +82,17 @@ func (sd *SignedData) verify(message []byte, roots *x509.CertPool) ([]*x509.Cert
 			if err != nil {
 				return nil, err
 			}
-
 			if !siContentType.Equal(sd.psd.EncapContentInfo.EContentType) {
-				return nil, errors.New("invalid SignerInfo ContentType attribute")
+				return nil, protocol.ASN1Error{Message: "invalid SignerInfo ContentType attribute"}
 			}
 
 			// Calculate the digest over the actual message.
-			hash := si.Hash()
-			if hash == 0 {
-				return nil, fmt.Errorf("unknown digest algorithm: %s", si.DigestAlgorithm.Algorithm.String())
-			}
-			if !hash.Available() {
-				return nil, fmt.Errorf("Hash not avaialbe: %s", si.DigestAlgorithm.Algorithm.String())
+			hash, err := si.Hash()
+			if err != nil {
+				return nil, err
 			}
 			actualMessageDigest := hash.New()
-			if _, err = actualMessageDigest.Write(message); err != nil {
+			if _, err = actualMessageDigest.Write(econtent); err != nil {
 				return nil, err
 			}
 
@@ -138,20 +122,47 @@ func (sd *SignedData) verify(message []byte, roots *x509.CertPool) ([]*x509.Cert
 
 		algo := si.X509SignatureAlgorithm()
 		if algo == x509.UnknownSignatureAlgorithm {
-			return nil, errors.New("unsupported signature or digest algorithm")
+			return nil, protocol.ErrUnsupported
 		}
 
 		if err := cert.CheckSignature(algo, signedMessage, si.Signature); err != nil {
 			return nil, err
 		}
 
-		if roots != UnsafeNoVerify {
-			if _, err := cert.Verify(verifyOpts); err != nil {
+		// If the caller didn't specify the signature time, we'll use the verified
+		// timestamp. If there's no timestamp we use the current time when checking
+		// the cert validity window. This isn't perfect because the signature may
+		// have been created before the cert's not-before date, but this is the best
+		// we can do.
+		optsCopy := opts
+
+		if hasTS, err := hasTimestamp(si); err != nil {
+			return nil, err
+		} else if hasTS {
+			tsti, err := getTimestamp(si, opts)
+			if err != nil {
 				return nil, err
 			}
+
+			// This check is slightly redundant, given that the cert validity times
+			// are checked by cert.Verify. We take the timestamp accuracy into account
+			// here though, whereas cert.Verify will not.
+			if !tsti.Before(cert.NotAfter) || !tsti.After(cert.NotBefore) {
+				return nil, x509.CertificateInvalidError{Cert: cert, Reason: x509.Expired, Detail: ""}
+			}
+
+			if optsCopy.CurrentTime.IsZero() {
+				optsCopy.CurrentTime = tsti.GenTime
+			}
+		}
+
+		if chain, err := cert.Verify(optsCopy); err != nil {
+			return nil, err
+		} else {
+			chains = append(chains, chain)
 		}
 	}
 
 	// OK
-	return leafs, nil
+	return chains, nil
 }

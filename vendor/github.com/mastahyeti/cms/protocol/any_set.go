@@ -20,11 +20,11 @@ func NewAnySet(elts ...asn1.RawValue) AnySet {
 func DecodeAnySet(rv asn1.RawValue) (as AnySet, err error) {
 	// Make sure it's really a SET.
 	if rv.Class != asn1.ClassUniversal {
-		err = fmt.Errorf("Bad class. Expecting %d, got %d", asn1.ClassUniversal, rv.Class)
+		err = ASN1Error{fmt.Sprintf("Bad class. Expecting %d, got %d", asn1.ClassUniversal, rv.Class)}
 		return
 	}
 	if rv.Tag != asn1.TagSet {
-		err = fmt.Errorf("Bad tag. Expecting %d, got %d", asn1.TagSet, rv.Tag)
+		err = ASN1Error{fmt.Sprintf("Bad tag. Expecting %d, got %d", asn1.TagSet, rv.Tag)}
 		return
 	}
 

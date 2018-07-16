@@ -4,7 +4,10 @@ package protocol
 import (
 	"bytes"
 	"crypto"
+	"crypto/ecdsa"
+	"crypto/elliptic"
 	"crypto/rand"
+	_ "crypto/sha1" // for crypto.SHA1
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/asn1"
@@ -13,103 +16,37 @@ import (
 	"math/big"
 	"time"
 
-	_ "crypto/sha1" // for crypto.SHA1
+	"github.com/mastahyeti/cms/oid"
 )
 
-var (
-	// ErrUnsupportedContentType is returned when a CMS content is not supported.
-	// Currently only Data (1.2.840.113549.1.7.1) and
-	// Signed Data (1.2.840.113549.1.7.2) are supported.
-	ErrUnsupportedContentType = errors.New("cms/protocol: cannot parse data: unimplemented content type")
+// ASN1Error is an error from parsing ASN.1 structures.
+type ASN1Error struct {
+	Message string
+}
 
+// Error implements the error interface.
+func (err ASN1Error) Error() string {
+	return fmt.Sprintf("cms/protocol: ASN.1 Error — %s", err.Message)
+}
+
+var (
 	// ErrWrongType is returned by methods that make assumptions about types.
 	// Helper methods are defined for accessing CHOICE and  ANY feilds. These
 	// helper methods get the value of the field, assuming it is of a given type.
 	// This error is returned if that assumption is wrong and the field has a
 	// different type.
 	ErrWrongType = errors.New("cms/protocol: wrong choice or any type")
-)
 
-var (
-	nilOID = asn1.ObjectIdentifier(nil)
+	// ErrNoCertificate is returned when a requested certificate cannot be found.
+	ErrNoCertificate = errors.New("no certificate found")
 
-	// Content type OIDs
-	oidData       = asn1.ObjectIdentifier{1, 2, 840, 113549, 1, 7, 1}
-	oidSignedData = asn1.ObjectIdentifier{1, 2, 840, 113549, 1, 7, 2}
+	// ErrUnsupported is returned when an unsupported type or version
+	// is encountered.
+	ErrUnsupported = ASN1Error{"unsupported type or version"}
 
-	// Attribute OIDs
-	oidAttributeContentType   = asn1.ObjectIdentifier{1, 2, 840, 113549, 1, 9, 3}
-	oidAttributeMessageDigest = asn1.ObjectIdentifier{1, 2, 840, 113549, 1, 9, 4}
-	oidAttributeSigningTime   = asn1.ObjectIdentifier{1, 2, 840, 113549, 1, 9, 5}
-
-	// Signature Algorithm  OIDs
-	oidSignatureAlgorithmRSA   = asn1.ObjectIdentifier{1, 2, 840, 113549, 1, 1, 1}
-	oidSignatureAlgorithmECDSA = asn1.ObjectIdentifier{1, 2, 840, 10045, 2, 1}
-
-	// Digest Algorithm OIDs
-	oidDigestAlgorithmSHA1   = asn1.ObjectIdentifier{1, 3, 14, 3, 2, 26}
-	oidDigestAlgorithmMD5    = asn1.ObjectIdentifier{1, 2, 840, 113549, 2, 5}
-	oidDigestAlgorithmSHA256 = asn1.ObjectIdentifier{2, 16, 840, 1, 101, 3, 4, 2, 1}
-	oidDigestAlgorithmSHA384 = asn1.ObjectIdentifier{2, 16, 840, 1, 101, 3, 4, 2, 2}
-	oidDigestAlgorithmSHA512 = asn1.ObjectIdentifier{2, 16, 840, 1, 101, 3, 4, 2, 3}
-
-	// X509 extensions
-	oidSubjectKeyIdentifier = asn1.ObjectIdentifier{2, 5, 29, 14}
-
-	// digestAlgorithmToHash maps digest OIDs to crypto.Hash values.
-	digestAlgorithmToHash = map[string]crypto.Hash{
-		oidDigestAlgorithmSHA1.String():   crypto.SHA1,
-		oidDigestAlgorithmMD5.String():    crypto.MD5,
-		oidDigestAlgorithmSHA256.String(): crypto.SHA256,
-		oidDigestAlgorithmSHA384.String(): crypto.SHA384,
-		oidDigestAlgorithmSHA512.String(): crypto.SHA512,
-	}
-
-	// signatureAlgorithmToDigestAlgorithm maps x509.SignatureAlgorithm to
-	// digestAlgorithm OIDs.
-	signatureAlgorithmToDigestAlgorithm = map[x509.SignatureAlgorithm]asn1.ObjectIdentifier{
-		x509.SHA1WithRSA:     oidDigestAlgorithmSHA1,
-		x509.MD5WithRSA:      oidDigestAlgorithmMD5,
-		x509.SHA256WithRSA:   oidDigestAlgorithmSHA256,
-		x509.SHA384WithRSA:   oidDigestAlgorithmSHA384,
-		x509.SHA512WithRSA:   oidDigestAlgorithmSHA512,
-		x509.ECDSAWithSHA1:   oidDigestAlgorithmSHA1,
-		x509.ECDSAWithSHA256: oidDigestAlgorithmSHA256,
-		x509.ECDSAWithSHA384: oidDigestAlgorithmSHA384,
-		x509.ECDSAWithSHA512: oidDigestAlgorithmSHA512,
-	}
-
-	// signatureAlgorithmToSignatureAlgorithm maps x509.SignatureAlgorithm to
-	// signatureAlgorithm OIDs.
-	signatureAlgorithmToSignatureAlgorithm = map[x509.SignatureAlgorithm]asn1.ObjectIdentifier{
-		x509.SHA1WithRSA:     oidSignatureAlgorithmRSA,
-		x509.MD5WithRSA:      oidSignatureAlgorithmRSA,
-		x509.SHA256WithRSA:   oidSignatureAlgorithmRSA,
-		x509.SHA384WithRSA:   oidSignatureAlgorithmRSA,
-		x509.SHA512WithRSA:   oidSignatureAlgorithmRSA,
-		x509.ECDSAWithSHA1:   oidSignatureAlgorithmECDSA,
-		x509.ECDSAWithSHA256: oidSignatureAlgorithmECDSA,
-		x509.ECDSAWithSHA384: oidSignatureAlgorithmECDSA,
-		x509.ECDSAWithSHA512: oidSignatureAlgorithmECDSA,
-	}
-
-	// signatureAlgorithms maps digest and signature OIDs to
-	// x509.SignatureAlgorithm values.
-	signatureAlgorithms = map[string]map[string]x509.SignatureAlgorithm{
-		oidSignatureAlgorithmRSA.String(): map[string]x509.SignatureAlgorithm{
-			oidDigestAlgorithmSHA1.String():   x509.SHA1WithRSA,
-			oidDigestAlgorithmMD5.String():    x509.MD5WithRSA,
-			oidDigestAlgorithmSHA256.String(): x509.SHA256WithRSA,
-			oidDigestAlgorithmSHA384.String(): x509.SHA384WithRSA,
-			oidDigestAlgorithmSHA512.String(): x509.SHA512WithRSA,
-		},
-		oidSignatureAlgorithmECDSA.String(): map[string]x509.SignatureAlgorithm{
-			oidDigestAlgorithmSHA1.String():   x509.ECDSAWithSHA1,
-			oidDigestAlgorithmSHA256.String(): x509.ECDSAWithSHA256,
-			oidDigestAlgorithmSHA384.String(): x509.ECDSAWithSHA384,
-			oidDigestAlgorithmSHA512.String(): x509.ECDSAWithSHA512,
-		},
-	}
+	// ErrTrailingData is returned when extra data is found after parsing an ASN.1
+	// structure.
+	ErrTrailingData = ASN1Error{"unexpected trailing data"}
 )
 
 // ContentInfo ::= SEQUENCE {
@@ -125,7 +62,7 @@ type ContentInfo struct {
 // ParseContentInfo parses a top-level ContentInfo type from BER encoded data.
 func ParseContentInfo(ber []byte) (ci ContentInfo, err error) {
 	var der []byte
-	if der, err = ber2der(ber); err != nil {
+	if der, err = BER2DER(ber); err != nil {
 		return
 	}
 
@@ -134,7 +71,7 @@ func ParseContentInfo(ber []byte) (ci ContentInfo, err error) {
 		return
 	}
 	if len(rest) > 0 {
-		err = errors.New("unexpected trailing data")
+		err = ErrTrailingData
 	}
 
 	return
@@ -142,7 +79,7 @@ func ParseContentInfo(ber []byte) (ci ContentInfo, err error) {
 
 // SignedDataContent gets the content assuming contentType is signedData.
 func (ci ContentInfo) SignedDataContent() (*SignedData, error) {
-	if !ci.ContentType.Equal(oidSignedData) {
+	if !ci.ContentType.Equal(oid.SignedData) {
 		return nil, ErrWrongType
 	}
 
@@ -150,7 +87,7 @@ func (ci ContentInfo) SignedDataContent() (*SignedData, error) {
 	if rest, err := asn1.Unmarshal(ci.Content.Bytes, sd); err != nil {
 		return nil, err
 	} else if len(rest) > 0 {
-		return nil, errors.New("unexpected trailing data")
+		return nil, ErrTrailingData
 	}
 
 	return sd, nil
@@ -169,10 +106,15 @@ type EncapsulatedContentInfo struct {
 // NewDataEncapsulatedContentInfo creates a new EncapsulatedContentInfo of type
 // id-data.
 func NewDataEncapsulatedContentInfo(data []byte) (EncapsulatedContentInfo, error) {
-	octetString, err := asn1.Marshal(asn1.RawValue{
+	return NewEncapsulatedContentInfo(oid.Data, data)
+}
+
+// NewEncapsulatedContentInfo creates a new EncapsulatedContentInfo.
+func NewEncapsulatedContentInfo(contentType asn1.ObjectIdentifier, content []byte) (EncapsulatedContentInfo, error) {
+	octets, err := asn1.Marshal(asn1.RawValue{
 		Class:      asn1.ClassUniversal,
 		Tag:        asn1.TagOctetString,
-		Bytes:      data,
+		Bytes:      content,
 		IsCompound: false,
 	})
 	if err != nil {
@@ -180,61 +122,79 @@ func NewDataEncapsulatedContentInfo(data []byte) (EncapsulatedContentInfo, error
 	}
 
 	return EncapsulatedContentInfo{
-		EContentType: oidData,
+		EContentType: contentType,
 		EContent: asn1.RawValue{
 			Class:      asn1.ClassContextSpecific,
 			Tag:        0,
-			Bytes:      octetString,
+			Bytes:      octets,
 			IsCompound: true,
 		},
 	}, nil
 }
 
-// DataEContent gets the EContent assuming EContentType is data. A nil byte
-// slice is returned if the OPTIONAL eContent field is missing.
-func (eci EncapsulatedContentInfo) DataEContent() ([]byte, error) {
-	if !eci.EContentType.Equal(oidData) {
-		return nil, ErrWrongType
-	}
+// EContentValue gets the OCTET STRING EContent value without tag or length.
+// This is what the message digest is calculated over. A nil byte slice is
+// returned if the OPTIONAL eContent field is missing.
+func (eci EncapsulatedContentInfo) EContentValue() ([]byte, error) {
 	if eci.EContent.Bytes == nil {
 		return nil, nil
 	}
 
-	var data asn1.RawValue
-	if rest, err := asn1.Unmarshal(eci.EContent.Bytes, &data); err != nil {
+	// The EContent is an `[0] EXPLICIT OCTET STRING`. EXPLICIT means that there
+	// is another whole tag wrapping the OCTET STRING. When we decoded the
+	// EContent into a asn1.RawValue we're just getting that outer tag, so the
+	// EContent.Bytes is the encoded OCTET STRING, which is what we really want
+	// the value of.
+	var octets asn1.RawValue
+	if rest, err := asn1.Unmarshal(eci.EContent.Bytes, &octets); err != nil {
 		return nil, err
 	} else if len(rest) > 0 {
-		return nil, errors.New("unexpected trailing data")
+		return nil, ErrTrailingData
 	}
-	if data.Class != asn1.ClassUniversal || data.Tag != asn1.TagOctetString {
-		return nil, fmt.Errorf("bad data content (class: %d tag: %d)", data.Class, data.Tag)
+	if octets.Class != asn1.ClassUniversal || octets.Tag != asn1.TagOctetString {
+		return nil, ASN1Error{"bad tag or class"}
 	}
 
-	var dataValue []byte
-
-	// gpgsm uses a constructed OCTET STRING for the data. Constructed, as opposed
-	// to primitive, strings are only allowed in BER encoding. Our ber2der stuff
-	// doesn't handle this, so we do it manually.
-	if data.IsCompound {
-		rest := data.Bytes
+	// While we already tried converting BER to DER, we didn't take constructed
+	// types into account. Constructed string types, as opposed to primitive
+	// types, can encode indefinite length strings by including a bunch of
+	// sub-strings that are joined together to get the actual value. Gpgsm uses
+	// a constructed OCTET STRING for the EContent, so we have to manually decode
+	// it here.
+	var value []byte
+	if octets.IsCompound {
+		rest := octets.Bytes
 		for len(rest) > 0 {
 			var err error
-			if rest, err = asn1.Unmarshal(rest, &data); err != nil {
+			if rest, err = asn1.Unmarshal(rest, &octets); err != nil {
 				return nil, err
 			}
 
 			// Don't allow further constructed types.
-			if data.Class != asn1.ClassUniversal || data.Tag != asn1.TagOctetString {
-				return nil, fmt.Errorf("bad data content (class: %d tag: %d)", data.Class, data.Tag)
+			if octets.Class != asn1.ClassUniversal || octets.Tag != asn1.TagOctetString || octets.IsCompound {
+				return nil, ASN1Error{"bad class or tag"}
 			}
 
-			dataValue = append(dataValue, data.Bytes...)
+			value = append(value, octets.Bytes...)
 		}
 	} else {
-		dataValue = data.Bytes
+		value = octets.Bytes
 	}
 
-	return dataValue, nil
+	return value, nil
+}
+
+// IsTypeData checks if the EContentType is id-data.
+func (eci EncapsulatedContentInfo) IsTypeData() bool {
+	return eci.EContentType.Equal(oid.Data)
+}
+
+// DataEContent gets the EContent assuming EContentType is data.
+func (eci EncapsulatedContentInfo) DataEContent() ([]byte, error) {
+	if !eci.IsTypeData() {
+		return nil, ErrWrongType
+	}
+	return eci.EContentValue()
 }
 
 // Attribute ::= SEQUENCE {
@@ -318,11 +278,11 @@ func (attrs Attributes) GetOnlyAttributeValueBytes(oid asn1.ObjectIdentifier) (r
 		return
 	}
 	if len(vals) != 1 {
-		err = fmt.Errorf("expected 1 attribute found %d", len(vals))
+		err = ASN1Error{"bad attribute count"}
 		return
 	}
 	if len(vals[0].Elements) != 1 {
-		err = fmt.Errorf("expected 1 attribute value found %d", len(vals[0].Elements))
+		err = ASN1Error{"bad attribute element count"}
 		return
 	}
 
@@ -423,9 +383,6 @@ type SignerInfo struct {
 // FindCertificate finds this SignerInfo's certificate in a slice of
 // certificates.
 func (si SignerInfo) FindCertificate(certs []*x509.Certificate) (*x509.Certificate, error) {
-	if len(certs) == 0 {
-		return nil, errors.New("no certificates")
-	}
 	switch si.Version {
 	case 1: // SID is issuer and serial number
 		isn, err := si.issuerAndSerialNumberSID()
@@ -446,7 +403,7 @@ func (si SignerInfo) FindCertificate(certs []*x509.Certificate) (*x509.Certifica
 
 		for _, cert := range certs {
 			for _, ext := range cert.Extensions {
-				if oidSubjectKeyIdentifier.Equal(ext.Id) {
+				if oid.SubjectKeyIdentifier.Equal(ext.Id) {
 					if bytes.Equal(ski, ext.Value) {
 						return cert, nil
 					}
@@ -454,10 +411,10 @@ func (si SignerInfo) FindCertificate(certs []*x509.Certificate) (*x509.Certifica
 			}
 		}
 	default:
-		return nil, errors.New("unknown SignerInfo version")
+		return nil, ErrUnsupported
 	}
 
-	return nil, errors.New("no matching certificate")
+	return nil, ErrNoCertificate
 }
 
 // issuerAndSerialNumberSID gets the SID, assuming it is a issuerAndSerialNumber.
@@ -469,7 +426,7 @@ func (si SignerInfo) issuerAndSerialNumberSID() (isn IssuerAndSerialNumber, err 
 
 	var rest []byte
 	if rest, err = asn1.Unmarshal(si.SID.FullBytes, &isn); err == nil && len(rest) > 0 {
-		err = errors.New("unexpected trailing data")
+		err = ErrTrailingData
 	}
 
 	return
@@ -486,8 +443,14 @@ func (si SignerInfo) subjectKeyIdentifierSID() ([]byte, error) {
 
 // Hash gets the crypto.Hash associated with this SignerInfo's DigestAlgorithm.
 // 0 is returned for unrecognized algorithms.
-func (si SignerInfo) Hash() crypto.Hash {
-	return digestAlgorithmToHash[si.DigestAlgorithm.Algorithm.String()]
+func (si SignerInfo) Hash() (crypto.Hash, error) {
+	algo := si.DigestAlgorithm.Algorithm.String()
+	hash := oid.DigestAlgorithmToHash[algo]
+	if hash == 0 || !hash.Available() {
+		return 0, ErrUnsupported
+	}
+
+	return hash, nil
 }
 
 // X509SignatureAlgorithm gets the x509.SignatureAlgorithm that should be used
@@ -498,13 +461,13 @@ func (si SignerInfo) X509SignatureAlgorithm() x509.SignatureAlgorithm {
 		digestOID = si.DigestAlgorithm.Algorithm.String()
 	)
 
-	return signatureAlgorithms[sigOID][digestOID]
+	return oid.SignatureAlgorithms[sigOID][digestOID]
 }
 
 // GetContentTypeAttribute gets the signed ContentType attribute from the
 // SignerInfo.
 func (si SignerInfo) GetContentTypeAttribute() (asn1.ObjectIdentifier, error) {
-	rv, err := si.SignedAttrs.GetOnlyAttributeValueBytes(oidAttributeContentType)
+	rv, err := si.SignedAttrs.GetOnlyAttributeValueBytes(oid.AttributeContentType)
 	if err != nil {
 		return nil, err
 	}
@@ -513,7 +476,7 @@ func (si SignerInfo) GetContentTypeAttribute() (asn1.ObjectIdentifier, error) {
 	if rest, err := asn1.Unmarshal(rv.FullBytes, &ct); err != nil {
 		return nil, err
 	} else if len(rest) > 0 {
-		return nil, errors.New("unexpected trailing data")
+		return nil, ErrTrailingData
 	}
 
 	return ct, nil
@@ -522,15 +485,12 @@ func (si SignerInfo) GetContentTypeAttribute() (asn1.ObjectIdentifier, error) {
 // GetMessageDigestAttribute gets the signed MessageDigest attribute from the
 // SignerInfo.
 func (si SignerInfo) GetMessageDigestAttribute() ([]byte, error) {
-	rv, err := si.SignedAttrs.GetOnlyAttributeValueBytes(oidAttributeMessageDigest)
+	rv, err := si.SignedAttrs.GetOnlyAttributeValueBytes(oid.AttributeMessageDigest)
 	if err != nil {
 		return nil, err
 	}
-	if rv.Class != asn1.ClassUniversal {
-		return nil, fmt.Errorf("expected class %d, got %d", asn1.ClassUniversal, rv.Class)
-	}
-	if rv.Tag != asn1.TagOctetString {
-		return nil, fmt.Errorf("expected tag %d, got %d", asn1.TagOctetString, rv.Tag)
+	if rv.Class != asn1.ClassUniversal || rv.Tag != asn1.TagOctetString {
+		return nil, ASN1Error{"bad class or tag"}
 	}
 
 	return rv.Bytes, nil
@@ -541,21 +501,18 @@ func (si SignerInfo) GetMessageDigestAttribute() ([]byte, error) {
 func (si SignerInfo) GetSigningTimeAttribute() (time.Time, error) {
 	var t time.Time
 
-	rv, err := si.SignedAttrs.GetOnlyAttributeValueBytes(oidAttributeSigningTime)
+	rv, err := si.SignedAttrs.GetOnlyAttributeValueBytes(oid.AttributeSigningTime)
 	if err != nil {
 		return t, err
 	}
-	if rv.Class != asn1.ClassUniversal {
-		return t, fmt.Errorf("expected class %d, got %d", asn1.ClassUniversal, rv.Class)
-	}
-	if rv.Tag != asn1.TagUTCTime && rv.Tag != asn1.TagGeneralizedTime {
-		return t, fmt.Errorf("expected tag %d or %d, got %d", asn1.TagUTCTime, asn1.TagGeneralizedTime, rv.Tag)
+	if rv.Class != asn1.ClassUniversal || (rv.Tag != asn1.TagUTCTime && rv.Tag != asn1.TagGeneralizedTime) {
+		return t, ASN1Error{"bad class or tag"}
 	}
 
 	if rest, err := asn1.Unmarshal(rv.FullBytes, &t); err != nil {
 		return t, err
 	} else if len(rest) > 0 {
-		return t, errors.New("unexpected trailing data")
+		return t, ErrTrailingData
 	}
 
 	return t, nil
@@ -608,14 +565,16 @@ type SignedData struct {
 }
 
 // NewSignedData creates a new SignedData.
-func NewSignedData(data []byte) (*SignedData, error) {
-	eci, err := NewDataEncapsulatedContentInfo(data)
-	if err != nil {
-		return nil, err
+func NewSignedData(eci EncapsulatedContentInfo) (*SignedData, error) {
+	// The version is picked based on which CMS features are used. We only use
+	// version 1 features, except for supporting non-data econtent.
+	version := 1
+	if !eci.IsTypeData() {
+		version = 3
 	}
 
 	return &SignedData{
-		Version:          1,
+		Version:          version,
 		DigestAlgorithms: []pkix.AlgorithmIdentifier{},
 		EncapContentInfo: eci,
 		SignerInfos:      []SignerInfo{},
@@ -630,14 +589,17 @@ func (sd *SignedData) AddSignerInfo(chain []*x509.Certificate, signer crypto.Sig
 		return err
 	}
 
-	var cert *x509.Certificate
+	var (
+		cert    *x509.Certificate
+		certPub []byte
+	)
+
 	for _, c := range chain {
-		if err := sd.addCertificate(c); err != nil {
+		if err = sd.addCertificate(c); err != nil {
 			return err
 		}
 
-		certPub, err := x509.MarshalPKIXPublicKey(c.PublicKey)
-		if err != nil {
+		if certPub, err = x509.MarshalPKIXPublicKey(c.PublicKey); err != nil {
 			return err
 		}
 
@@ -646,7 +608,7 @@ func (sd *SignedData) AddSignerInfo(chain []*x509.Certificate, signer crypto.Sig
 		}
 	}
 	if cert == nil {
-		return errors.New("No certificate matching signer's public key")
+		return ErrNoCertificate
 	}
 
 	sid, err := NewIssuerAndSerialNumber(cert)
@@ -654,54 +616,47 @@ func (sd *SignedData) AddSignerInfo(chain []*x509.Certificate, signer crypto.Sig
 		return err
 	}
 
-	digestAlgorithm := signatureAlgorithmToDigestAlgorithm[cert.SignatureAlgorithm]
-	if digestAlgorithm == nil {
-		return errors.New("unsupported digest algorithm")
-	}
-
-	signatureAlgorithm := signatureAlgorithmToSignatureAlgorithm[cert.SignatureAlgorithm]
-	if signatureAlgorithm == nil {
-		return errors.New("unsupported signature algorithm")
+	digestAlgorithm := digestAlgorithmForPublicKey(pub)
+	signatureAlgorithm, ok := oid.PublicKeyAlgorithmToSignatureAlgorithm[cert.PublicKeyAlgorithm]
+	if !ok {
+		return errors.New("unsupported certificate public key algorithm")
 	}
 
 	si := SignerInfo{
 		Version:            1,
 		SID:                sid,
-		DigestAlgorithm:    pkix.AlgorithmIdentifier{Algorithm: digestAlgorithm},
+		DigestAlgorithm:    digestAlgorithm,
 		SignedAttrs:        nil,
-		SignatureAlgorithm: pkix.AlgorithmIdentifier{Algorithm: signatureAlgorithm},
+		SignatureAlgorithm: signatureAlgorithm,
 		Signature:          nil,
 		UnsignedAttrs:      nil,
 	}
 
 	// Get the message
-	data, err := sd.EncapContentInfo.DataEContent()
+	content, err := sd.EncapContentInfo.EContentValue()
 	if err != nil {
 		return err
 	}
-	if data == nil {
+	if content == nil {
 		return errors.New("already detached")
 	}
 
 	// Digest the message.
-	hash := si.Hash()
-	if hash == 0 {
-		return fmt.Errorf("unknown digest algorithm: %s", digestAlgorithm.String())
-	}
-	if !hash.Available() {
-		return fmt.Errorf("Hash not avaialbe: %s", digestAlgorithm.String())
+	hash, err := si.Hash()
+	if err != nil {
+		return err
 	}
 	md := hash.New()
-	if _, err = md.Write(data); err != nil {
+	if _, err = md.Write(content); err != nil {
 		return err
 	}
 
 	// Build our SignedAttributes
-	mdAttr, err := NewAttribute(oidAttributeMessageDigest, md.Sum(nil))
+	mdAttr, err := NewAttribute(oid.AttributeMessageDigest, md.Sum(nil))
 	if err != nil {
 		return err
 	}
-	ctAttr, err := NewAttribute(oidAttributeContentType, oidData)
+	ctAttr, err := NewAttribute(oid.AttributeContentType, sd.EncapContentInfo.EContentType)
 	if err != nil {
 		return err
 	}
@@ -725,6 +680,21 @@ func (sd *SignedData) AddSignerInfo(chain []*x509.Certificate, signer crypto.Sig
 	sd.SignerInfos = append(sd.SignerInfos, si)
 
 	return nil
+}
+
+// algorithmsForPublicKey takes an opinionated stance on what algorithms to use
+// for the given public key.
+func digestAlgorithmForPublicKey(pub crypto.PublicKey) pkix.AlgorithmIdentifier {
+	if ecPub, ok := pub.(*ecdsa.PublicKey); ok {
+		switch ecPub.Curve {
+		case elliptic.P384():
+			return pkix.AlgorithmIdentifier{Algorithm: oid.DigestAlgorithmSHA384}
+		case elliptic.P521():
+			return pkix.AlgorithmIdentifier{Algorithm: oid.DigestAlgorithmSHA512}
+		}
+	}
+
+	return pkix.AlgorithmIdentifier{Algorithm: oid.DigestAlgorithmSHA256}
 }
 
 // addCertificate adds a *x509.Certificate.
@@ -771,7 +741,7 @@ func (sd *SignedData) X509Certificates() ([]*x509.Certificate, error) {
 	certs := make([]*x509.Certificate, 0, len(sd.Certificates))
 	for _, raw := range sd.Certificates {
 		if raw.Class != asn1.ClassUniversal || raw.Tag != asn1.TagSequence {
-			return nil, fmt.Errorf("Unsupported certificate type (class %d, tag %d)", raw.Class, raw.Tag)
+			return nil, ErrUnsupported
 		}
 
 		x509, err := x509.ParseCertificate(raw.FullBytes)
@@ -785,22 +755,33 @@ func (sd *SignedData) X509Certificates() ([]*x509.Certificate, error) {
 	return certs, nil
 }
 
-// ContentInfoDER returns the SignedData wrapped in a ContentInfo packet and DER
-// encoded.
-func (sd *SignedData) ContentInfoDER() ([]byte, error) {
+// ContentInfo returns the SignedData wrapped in a ContentInfo packet.
+func (sd *SignedData) ContentInfo() (ContentInfo, error) {
+	var nilCI ContentInfo
+
 	der, err := asn1.Marshal(*sd)
 	if err != nil {
-		return nil, err
+		return nilCI, err
 	}
 
-	ci := ContentInfo{
-		ContentType: oidSignedData,
+	return ContentInfo{
+		ContentType: oid.SignedData,
 		Content: asn1.RawValue{
 			Class:      asn1.ClassContextSpecific,
 			Tag:        0,
 			Bytes:      der,
 			IsCompound: true,
 		},
+	}, nil
+
+}
+
+// ContentInfoDER returns the SignedData wrapped in a ContentInfo packet and DER
+// encoded.
+func (sd *SignedData) ContentInfoDER() ([]byte, error) {
+	ci, err := sd.ContentInfo()
+	if err != nil {
+		return nil, err
 	}
 
 	return asn1.Marshal(ci)
