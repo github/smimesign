@@ -7,6 +7,7 @@ import (
 	"crypto/rand"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	"reflect"
 	"testing"
 )
 
@@ -152,6 +153,18 @@ func TestPFX(t *testing.T) {
 	assertNoPanic(t, func() {
 		New().PFX("asdf")
 	})
+}
+
+func TestAIA(t *testing.T) {
+	i := New(IssuingCertificateURL("a", "b"), OCSPServer("c", "d"))
+
+	if !reflect.DeepEqual(i.Certificate.IssuingCertificateURL, []string{"a", "b"}) {
+		t.Error("bad IssuingCertificateURL: ", i.Certificate.IssuingCertificateURL)
+	}
+
+	if !reflect.DeepEqual(i.Certificate.OCSPServer, []string{"c", "d"}) {
+		t.Error("bad OCSPServer: ", i.Certificate.OCSPServer)
+	}
 }
 
 func assertNoPanic(t *testing.T, cb func()) {

@@ -17,7 +17,10 @@ var (
 	ca           = fakeca.New(fakeca.IsCA)
 	intermediate = ca.Issue(fakeca.IsCA)
 	leaf         = intermediate.Issue()
-	wrappedLeaf  = identity{leaf}
+	aiaLeaf      = intermediate.Issue(fakeca.IssuingCertificateURL("http://foo"))
+
+	wrappedLeaf    = identity{leaf}
+	wrappedAIALeaf = identity{aiaLeaf}
 )
 
 // make *fakeca.Identity implement certstore.Identity
@@ -100,7 +103,10 @@ func testSetup(t *testing.T, args ...string) func() {
 
 	getopt.CommandLine.Parse(append([]string{"smimesign"}, args...))
 
-	idents = []certstore.Identity{wrappedLeaf}
+	idents = []certstore.Identity{
+		wrappedLeaf,
+		wrappedAIALeaf,
+	}
 
 	return resetFunc
 }

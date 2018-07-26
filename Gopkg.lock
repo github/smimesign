@@ -34,7 +34,7 @@
   branch = "master"
   name = "github.com/mastahyeti/fakeca"
   packages = ["."]
-  revision = "cb55136fa97a78a6e6cf8bdc483c30fe2eb562e6"
+  revision = "5f91b32d1226951f9631342eee20f5142387a216"
 
 [[projects]]
   branch = "master"

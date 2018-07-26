@@ -122,11 +122,21 @@ func findUserIdentity() (certstore.Identity, error) {
 // certsForSignature determines which certificates to include in the signature
 // based on the --include-certs option specified by the user.
 func certsForSignature(chain []*x509.Certificate) []*x509.Certificate {
-	if *includeCertsOpt <= -2 {
-		if hasRoot := bytes.Equal(chain[len(chain)-1].RawIssuer, chain[len(chain)-1].RawSubject); hasRoot {
-			return chain[0 : len(chain)-1]
+	if *includeCertsOpt <= -3 {
+		for i := len(chain) - 1; i > 0; i-- {
+			issuer, cert := chain[i], chain[i-1]
+
+			// remove issuer when cert has AIA extension
+			if bytes.Equal(issuer.RawSubject, cert.RawIssuer) && len(cert.IssuingCertificateURL) > 0 {
+				chain = chain[0:i]
+			}
 		}
-		return chain
+
+		return chainWithoutRoot(chain)
+	}
+
+	if *includeCertsOpt == -2 {
+		return chainWithoutRoot(chain)
 	}
 
 	if *includeCertsOpt == -1 {
@@ -139,4 +149,22 @@ func certsForSignature(chain []*x509.Certificate) []*x509.Certificate {
 	}
 
 	return chain[0:include]
+}
+
+// Returns the provided chain, having removed the root certificate, if present.
+// This includes removing the cert itself if the chain is a single self-signed
+// cert.
+func chainWithoutRoot(chain []*x509.Certificate) []*x509.Certificate {
+	if len(chain) == 0 {
+		return chain
+	}
+
+	lastIdx := len(chain) - 1
+	last := chain[lastIdx]
+
+	if bytes.Equal(last.RawIssuer, last.RawSubject) {
+		return chain[0:lastIdx]
+	}
+
+	return chain
 }

@@ -13,13 +13,15 @@ import (
 )
 
 type configuration struct {
-	subject   *pkix.Name
-	issuer    *Identity
-	nextSN    *int64
-	priv      *crypto.Signer
-	isCA      bool
-	notBefore *time.Time
-	notAfter  *time.Time
+	subject               *pkix.Name
+	issuer                *Identity
+	nextSN                *int64
+	priv                  *crypto.Signer
+	isCA                  bool
+	notBefore             *time.Time
+	notAfter              *time.Time
+	issuingCertificateURL []string
+	ocspServer            []string
 }
 
 func (c *configuration) generate() *Identity {
@@ -29,6 +31,8 @@ func (c *configuration) generate() *Identity {
 		BasicConstraintsValid: true,
 		NotAfter:              c.getNotAfter(),
 		NotBefore:             c.getNotBefore(),
+		IssuingCertificateURL: c.issuingCertificateURL,
+		OCSPServer:            c.ocspServer,
 	}
 
 	var (
@@ -203,6 +207,21 @@ func NotBefore(value time.Time) Option {
 func NotAfter(value time.Time) Option {
 	return func(c *configuration) {
 		c.notAfter = &value
+	}
+}
+
+// IssuingCertificateURL is an Option for setting the identity's certificate's
+// IssuingCertificateURL.
+func IssuingCertificateURL(value ...string) Option {
+	return func(c *configuration) {
+		c.issuingCertificateURL = append(c.issuingCertificateURL, value...)
+	}
+}
+
+// OCSPServer is an Option for setting the identity's certificate's OCSPServer.
+func OCSPServer(value ...string) Option {
+	return func(c *configuration) {
+		c.ocspServer = append(c.ocspServer, value...)
 	}
 }
 

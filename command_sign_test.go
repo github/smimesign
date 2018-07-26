@@ -21,8 +21,47 @@ func TestSign(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestSignIncludeCertsAIA(t *testing.T) {
+	defer testSetup(t, "--sign", "-u", certHexFingerprint(aiaLeaf.Certificate))()
+
+	stdinBuf.WriteString("hello, world!")
+	commandSign()
+
+	ci, err := protocol.ParseContentInfo(stdoutBuf.Bytes())
+	require.NoError(t, err)
+
+	sd, err := ci.SignedDataContent()
+	require.NoError(t, err)
+
+	certs, err := sd.X509Certificates()
+	require.NoError(t, err)
+
+	require.Equal(t, 1, len(certs))
+	require.True(t, certs[0].Equal(aiaLeaf.Certificate))
+}
+
 func TestSignIncludeCertsDefault(t *testing.T) {
 	defer testSetup(t, "--sign", "-u", certHexFingerprint(leaf.Certificate))()
+
+	stdinBuf.WriteString("hello, world!")
+	commandSign()
+
+	ci, err := protocol.ParseContentInfo(stdoutBuf.Bytes())
+	require.NoError(t, err)
+
+	sd, err := ci.SignedDataContent()
+	require.NoError(t, err)
+
+	certs, err := sd.X509Certificates()
+	require.NoError(t, err)
+
+	require.Equal(t, 2, len(certs))
+	require.True(t, certs[0].Equal(leaf.Certificate))
+	require.True(t, certs[1].Equal(intermediate.Certificate))
+}
+
+func TestSignIncludeCertsMinus3(t *testing.T) {
+	defer testSetup(t, "--sign", "--include-certs=-3", "-u", certHexFingerprint(leaf.Certificate))()
 
 	stdinBuf.WriteString("hello, world!")
 	commandSign()
