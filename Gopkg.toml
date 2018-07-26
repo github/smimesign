@@ -30,8 +30,8 @@
   name = "github.com/mastahyeti/certstore"
 
 [[constraint]]
-  branch = "master"
   name = "github.com/mastahyeti/cms"
+  version = "0.0.2"
 
 [[constraint]]
   branch = "master"

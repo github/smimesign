@@ -8,13 +8,18 @@
   version = "2018.01.18"
 
 [[projects]]
+  name = "github.com/davecgh/go-spew"
+  packages = ["spew"]
+  revision = "346938d642f2ec3594ed81d874461961cd0faa76"
+  version = "v1.1.0"
+
+[[projects]]
   branch = "master"
   name = "github.com/mastahyeti/certstore"
   packages = ["."]
   revision = "ab8919c9ca63b30a6f44cc573ee236ba24317979"
 
 [[projects]]
-  branch = "master"
   name = "github.com/mastahyeti/cms"
   packages = [
     ".",
@@ -22,7 +27,14 @@
     "protocol",
     "timestamp"
   ]
-  revision = "88f9fea4900224804e36fd18aced191a11cc7dd6"
+  revision = "a229af0c48a09fb2fd15983d09eb47052521ce03"
+  version = "0.0.2"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/mastahyeti/fakeca"
+  packages = ["."]
+  revision = "cb55136fa97a78a6e6cf8bdc483c30fe2eb562e6"
 
 [[projects]]
   branch = "master"
@@ -37,6 +49,21 @@
   version = "v0.8.0"
 
 [[projects]]
+  name = "github.com/pmezard/go-difflib"
+  packages = ["difflib"]
+  revision = "792786c7400a136282c1664665ae0a8db921c6c2"
+  version = "v1.0.0"
+
+[[projects]]
+  name = "github.com/stretchr/testify"
+  packages = [
+    "assert",
+    "require"
+  ]
+  revision = "f35b8ab0b5a2cef36673838d662e249dd9c94686"
+  version = "v1.2.2"
+
+[[projects]]
   branch = "master"
   name = "golang.org/x/crypto"
   packages = [
@@ -46,11 +73,11 @@
     "openpgp/packet",
     "openpgp/s2k"
   ]
-  revision = "432090b8f568c018896cd8a0fb0345872bbac6ce"
+  revision = "c126467f60eb25f8f27e5a981f32a87e3965053f"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "b6729a8c0a898bff6db942fff599b3fcad552ad12e47c49c99aeda153814da32"
+  inputs-digest = "d121856dbcff88ef0d4afb5b3b5d21a6d3b30e82b6c3876db0e3e3802e03f27b"
   solver-name = "gps-cdcl"
   solver-version = 1

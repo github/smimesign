@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"os"
 
 	"github.com/mastahyeti/certstore"
@@ -21,15 +22,23 @@ var (
 	listKeysFlag = getopt.BoolLong("list-keys", 0, "show keys")
 
 	// Option flags
-	localUserOpt   = getopt.StringLong("local-user", 'u', "", "use USER-ID to sign", "USER-ID")
-	detachSignFlag = getopt.BoolLong("detach-sign", 'b', "make a detached signature")
-	armorFlag      = getopt.BoolLong("armor", 'a', "create ascii armored output")
-	statusFdOpt    = getopt.IntLong("status-fd", 0, -1, "write special status strings to the file descriptor n.", "n")
-	keyFormatOpt   = getopt.EnumLong("keyid-format", 0, []string{"long"}, "long", "select  how  to  display key IDs.", "{long}")
-	tsaOpt         = getopt.StringLong("timestamp-authority", 't', defaultTSA, "URL of RFC3161 timestamp authority to use for timestamping")
-	fileArgs       []string
+	localUserOpt    = getopt.StringLong("local-user", 'u', "", "use USER-ID to sign", "USER-ID")
+	detachSignFlag  = getopt.BoolLong("detach-sign", 'b', "make a detached signature")
+	armorFlag       = getopt.BoolLong("armor", 'a', "create ascii armored output")
+	statusFdOpt     = getopt.IntLong("status-fd", 0, -1, "write special status strings to the file descriptor n.", "n")
+	keyFormatOpt    = getopt.EnumLong("keyid-format", 0, []string{"long"}, "long", "select  how  to  display key IDs.", "{long}")
+	tsaOpt          = getopt.StringLong("timestamp-authority", 't', defaultTSA, "URL of RFC3161 timestamp authority to use for timestamping")
+	includeCertsOpt = getopt.IntLong("include-certs", 0, -2, "-2 includes all certs except root. -1 includes all certs. 0 includes no certs. 1 includes leaf cert. >1 includes n from the leaf. Default -2.")
+
+	// Remaining arguments
+	fileArgs []string
 
 	idents []certstore.Identity
+
+	// these are changed in tests
+	stdin  io.ReadCloser  = os.Stdin
+	stdout io.WriteCloser = os.Stdout
+	stderr io.WriteCloser = os.Stderr
 )
 
 func main() {
@@ -122,20 +131,24 @@ func handleExit() {
 	}
 }
 
+// actual fail implementation. overridden in tests.
+func doFail(a ...interface{}) {
+	fmt.Fprintln(stderr, a...)
+	panic(statusCode(1))
+}
+
+type failerFunc func(...interface{})
+
+var failer failerFunc = doFail
+
+func fail(a ...interface{}) {
+	failer(a...)
+}
+
 func faile(err error, message string) {
 	fail(errors.Wrap(err, message))
 }
 
 func failef(err error, format string, a ...interface{}) {
 	fail(errors.Wrapf(err, format, a...))
-}
-
-func fail(a ...interface{}) {
-	fmt.Fprintln(os.Stderr, a...)
-	panic(statusCode(1))
-}
-
-func failf(format string, a ...interface{}) {
-	fmt.Fprintf(os.Stderr, format, a...)
-	panic(statusCode(1))
 }

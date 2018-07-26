@@ -1,6 +1,7 @@
 package cms
 
 import (
+	"crypto/x509"
 	"encoding/asn1"
 
 	"github.com/mastahyeti/cms/protocol"
@@ -46,6 +47,23 @@ func ParseSignedData(ber []byte) (*SignedData, error) {
 // the SignedData encapsulates something other than data (1.2.840.113549.1.7.1).
 func (sd *SignedData) GetData() ([]byte, error) {
 	return sd.psd.EncapContentInfo.DataEContent()
+}
+
+// GetCertificates gets all the certificates stored in the SignedData.
+func (sd *SignedData) GetCertificates() ([]*x509.Certificate, error) {
+	return sd.psd.X509Certificates()
+}
+
+// SetCertificates replaces the certificates stored in the SignedData with new
+// ones.
+func (sd *SignedData) SetCertificates(certs []*x509.Certificate) error {
+	sd.psd.ClearCertificates()
+	for _, cert := range certs {
+		if err := sd.psd.AddCertificate(cert); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // Detached removes the data content from this SignedData. No more signatures

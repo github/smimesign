@@ -2,10 +2,10 @@ package main
 
 import (
 	"bytes"
+	"crypto/x509"
 	"encoding/pem"
 	"fmt"
 	"io"
-	"os"
 	"strings"
 
 	"github.com/mastahyeti/certstore"
@@ -19,7 +19,7 @@ func commandSign() {
 		faile(err, "failed to get identity matching specified user-id")
 	}
 	if userIdent == nil {
-		failf("Could not find identity matching specified user-id: %s\n", *localUserOpt)
+		fail("Could not find identity matching specified user-id:", *localUserOpt)
 	}
 
 	// Git is looking for "\n[GNUPG:] SIG_CREATED ", meaning we need to print a
@@ -27,9 +27,9 @@ func commandSign() {
 	// though GPGSM does not.
 	sBeginSigning.emit()
 
-	chain, err := userIdent.CertificateChain()
+	cert, err := userIdent.Certificate()
 	if err != nil {
-		faile(err, "failed to get idenity certificate chain")
+		faile(err, "failed to get idenity certificate")
 	}
 
 	signer, err := userIdent.Signer()
@@ -38,7 +38,7 @@ func commandSign() {
 	}
 
 	dataBuf := new(bytes.Buffer)
-	if _, err = io.Copy(dataBuf, os.Stdin); err != nil {
+	if _, err = io.Copy(dataBuf, stdin); err != nil {
 		faile(err, "failed to read message from stdin")
 	}
 
@@ -46,7 +46,7 @@ func commandSign() {
 	if err != nil {
 		faile(err, "failed to create signed data")
 	}
-	if err := sd.Sign(chain, signer); err != nil {
+	if err = sd.Sign([]*x509.Certificate{cert}, signer); err != nil {
 		faile(err, "failed to sign message")
 	}
 	if *detachSignFlag {
@@ -59,20 +59,28 @@ func commandSign() {
 		}
 	}
 
+	chain, err := userIdent.CertificateChain()
+	if err != nil {
+		faile(err, "failed to get idenity certificate chain")
+	}
+	if err = sd.SetCertificates(certsForSignature(chain)); err != nil {
+		faile(err, "failed to set certificates")
+	}
+
 	der, err := sd.ToDER()
 	if err != nil {
 		faile(err, "failed to serialize signature")
 	}
 
-	emitSigCreated(chain[0], *detachSignFlag)
+	emitSigCreated(cert, *detachSignFlag)
 
 	if *armorFlag {
-		err = pem.Encode(os.Stdout, &pem.Block{
+		err = pem.Encode(stdout, &pem.Block{
 			Type:  "SIGNED MESSAGE",
 			Bytes: der,
 		})
 	} else {
-		_, err = os.Stdout.Write(der)
+		_, err = stdout.Write(der)
 	}
 	if err != nil {
 		fail("failed to write signature")
@@ -109,4 +117,26 @@ func findUserIdentity() (certstore.Identity, error) {
 	}
 
 	return nil, nil
+}
+
+// certsForSignature determines which certificates to include in the signature
+// based on the --include-certs option specified by the user.
+func certsForSignature(chain []*x509.Certificate) []*x509.Certificate {
+	if *includeCertsOpt <= -2 {
+		if hasRoot := bytes.Equal(chain[len(chain)-1].RawIssuer, chain[len(chain)-1].RawSubject); hasRoot {
+			return chain[0 : len(chain)-1]
+		}
+		return chain
+	}
+
+	if *includeCertsOpt == -1 {
+		return chain
+	}
+
+	include := *includeCertsOpt
+	if include > len(chain) {
+		include = len(chain)
+	}
+
+	return chain[0:include]
 }
