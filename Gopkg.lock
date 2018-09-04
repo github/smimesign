@@ -11,7 +11,7 @@
   branch = "master"
   name = "github.com/mastahyeti/certstore"
   packages = ["."]
-  revision = "ab8919c9ca63b30a6f44cc573ee236ba24317979"
+  revision = "b5c7743eef9630309aec884accc77963ea8b1199"
 
 [[projects]]
   branch = "master"
