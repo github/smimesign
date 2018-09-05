@@ -36,8 +36,9 @@ func TestSignIncludeCertsAIA(t *testing.T) {
 	certs, err := sd.X509Certificates()
 	require.NoError(t, err)
 
-	require.Equal(t, 1, len(certs))
+	require.Equal(t, 2, len(certs))
 	require.True(t, certs[0].Equal(aiaLeaf.Certificate))
+	require.True(t, certs[1].Equal(intermediate.Certificate))
 }
 
 func TestSignIncludeCertsDefault(t *testing.T) {

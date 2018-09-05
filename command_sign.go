@@ -19,7 +19,7 @@ func commandSign() error {
 		return errors.Wrap(err, "failed to get identity matching specified user-id")
 	}
 	if userIdent == nil {
-		return fmt.Errorf("Could not find identity matching specified user-id: %s\n", *localUserOpt)
+		return fmt.Errorf("could not find identity matching specified user-id: %s\n", *localUserOpt)
 	}
 
 	// Git is looking for "\n[GNUPG:] SIG_CREATED ", meaning we need to print a
@@ -63,7 +63,10 @@ func commandSign() error {
 	if err != nil {
 		return errors.Wrap(err, "failed to get idenity certificate chain")
 	}
-	if err = sd.SetCertificates(certsForSignature(chain)); err != nil {
+	if chain, err = certsForSignature(chain); err != nil {
+		return err
+	}
+	if err = sd.SetCertificates(chain); err != nil {
 		return errors.Wrap(err, "failed to set certificates")
 	}
 
@@ -123,8 +126,18 @@ func findUserIdentity() (certstore.Identity, error) {
 
 // certsForSignature determines which certificates to include in the signature
 // based on the --include-certs option specified by the user.
-func certsForSignature(chain []*x509.Certificate) []*x509.Certificate {
-	if *includeCertsOpt <= -3 {
+func certsForSignature(chain []*x509.Certificate) ([]*x509.Certificate, error) {
+	include := *includeCertsOpt
+
+	if include < -3 {
+		include = -2 // default
+	}
+	if include > len(chain) {
+		include = len(chain)
+	}
+
+	switch include {
+	case -3:
 		for i := len(chain) - 1; i > 0; i-- {
 			issuer, cert := chain[i], chain[i-1]
 
@@ -133,24 +146,14 @@ func certsForSignature(chain []*x509.Certificate) []*x509.Certificate {
 				chain = chain[0:i]
 			}
 		}
-
-		return chainWithoutRoot(chain)
+		return chainWithoutRoot(chain), nil
+	case -2:
+		return chainWithoutRoot(chain), nil
+	case -1:
+		return chain, nil
+	default:
+		return chain[0:include], nil
 	}
-
-	if *includeCertsOpt == -2 {
-		return chainWithoutRoot(chain)
-	}
-
-	if *includeCertsOpt == -1 {
-		return chain
-	}
-
-	include := *includeCertsOpt
-	if include > len(chain) {
-		include = len(chain)
-	}
-
-	return chain[0:include]
 }
 
 // Returns the provided chain, having removed the root certificate, if present.
