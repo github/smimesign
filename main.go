@@ -33,8 +33,13 @@ var (
 )
 
 func main() {
-	defer handleExit()
+	if err := runCommand(); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+}
 
+func runCommand() error {
 	// Parse CLI args
 	getopt.HelpColumn = 30
 	getopt.SetParameters("[files]")
@@ -42,25 +47,21 @@ func main() {
 	fileArgs = getopt.Args()
 
 	if *helpFlag {
-		if *signFlag || *verifyFlag || *listKeysFlag {
-			fail("specify --help, --sign, --verify, or --list-keys")
-		} else {
-			getopt.Usage()
-			return
-		}
+		getopt.Usage()
+		return nil
 	}
 
 	// Open certificate store
 	store, err := certstore.Open()
 	if err != nil {
-		faile(err, "failed to open certificate store")
+		return errors.Wrap(err, "failed to open certificate store")
 	}
 	defer store.Close()
 
 	// Get list of identities
 	idents, err = store.Identities()
 	if err != nil {
-		faile(err, "failed to get identities from certificate store")
+		return errors.Wrap(err, "failed to get identities from certificate store")
 	}
 	for _, ident := range idents {
 		defer ident.Close()
@@ -68,74 +69,41 @@ func main() {
 
 	if *signFlag {
 		if *helpFlag || *verifyFlag || *listKeysFlag {
-			fail("specify --help, --sign, --verify, or --list-keys")
+			return errors.New("specify --help, --sign, --verify, or --list-keys")
 		} else if len(*localUserOpt) == 0 {
-			fail("specify a USER-ID to sign with")
+			return errors.New("specify a USER-ID to sign with")
 		} else {
-			commandSign()
-			return
+			return commandSign()
 		}
 	}
 
 	if *verifyFlag {
 		if *helpFlag || *signFlag || *listKeysFlag {
-			fail("specify --help, --sign, --verify, or --list-keys")
+			return errors.New("specify --help, --sign, --verify, or --list-keys")
 		} else if len(*localUserOpt) > 0 {
-			fail("local-user cannot be specified for verification")
+			return errors.New("local-user cannot be specified for verification")
 		} else if *detachSignFlag {
-			fail("detach-sign cannot be specified for verification")
+			return errors.New("detach-sign cannot be specified for verification")
 		} else if *armorFlag {
-			fail("armor cannot be specified for verification")
+			return errors.New("armor cannot be specified for verification")
 		} else {
-			commandVerify()
-			return
+			return commandVerify()
 		}
 	}
 
 	if *listKeysFlag {
 		if *helpFlag || *signFlag || *verifyFlag {
-			fail("specify --help, --sign, --verify, or --list-keys")
+			return errors.New("specify --help, --sign, --verify, or --list-keys")
 		} else if len(*localUserOpt) > 0 {
-			fail("local-user cannot be specified for list-keys")
+			return errors.New("local-user cannot be specified for list-keys")
 		} else if *detachSignFlag {
-			fail("detach-sign cannot be specified for list-keys")
+			return errors.New("detach-sign cannot be specified for list-keys")
 		} else if *armorFlag {
-			fail("armor cannot be specified for list-keys")
+			return errors.New("armor cannot be specified for list-keys")
 		} else {
-			commandListKeys()
-			return
+			return commandListKeys()
 		}
 	}
 
-	fail("specify --help, --sign, --verify, or --list-keys")
-}
-
-type statusCode int
-
-func handleExit() {
-	if e := recover(); e != nil {
-		if sc, isStatusCode := e.(statusCode); isStatusCode {
-			os.Exit(int(sc))
-		}
-
-		panic(e)
-	}
-}
-
-func faile(err error, message string) {
-	fail(errors.Wrap(err, message))
-}
-
-func failef(err error, format string, a ...interface{}) {
-	fail(errors.Wrapf(err, format, a...))
-}
-
-func fail(a ...interface{}) {
-	fmt.Fprintln(os.Stderr, a...)
-	panic(statusCode(1))
-}
-
-func failf(format string, a ...interface{}) {
-	fmt.Fprintf(os.Stderr, format, a...)
-	panic(statusCode(1))
+	return errors.New("specify --help, --sign, --verify, or --list-keys")
 }
