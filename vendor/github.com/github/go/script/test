@@ -1,0 +1,11 @@
+#!/bin/bash
+
+set -e
+cd "$(dirname "$0")/.."
+
+suite=$(
+    go list ./... |
+    grep -v "github.com/github/go/config/vault"
+)
+
+go test -v -race $suite

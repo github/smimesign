@@ -24,7 +24,7 @@ func commandVerify() error {
 
 func verifyAttached() error {
 	var (
-		f   *os.File
+		f   io.ReadCloser
 		err error
 	)
 
@@ -35,7 +35,7 @@ func verifyAttached() error {
 		}
 		defer f.Close()
 	} else {
-		f = os.Stdin
+		f = stdin
 	}
 
 	buf := new(bytes.Buffer)
@@ -80,10 +80,14 @@ func verifyAttached() error {
 }
 
 func verifyDetached() error {
+	var (
+		f   io.ReadCloser
+		err error
+	)
+
 	// Read in signature
-	f, err := os.Open(fileArgs[0])
-	if err != nil {
-		errors.Wrapf(err, "failed to open signature file (%s)", fileArgs[0])
+	if f, err = os.Open(fileArgs[0]); err != nil {
+		return errors.Wrapf(err, "failed to open signature file (%s)", fileArgs[0])
 	}
 	defer f.Close()
 
@@ -108,7 +112,7 @@ func verifyDetached() error {
 
 	// Read in signed data
 	if fileArgs[1] == "-" {
-		f = os.Stdin
+		f = stdin
 	} else {
 		if f, err = os.Open(fileArgs[1]); err != nil {
 			errors.Wrapf(err, "failed to open message file (%s)", fileArgs[1])

@@ -144,6 +144,10 @@ func (s *Set) SetParameters(parameters string) {
 	s.parameters = parameters
 }
 
+// Parameters returns the parameters set by SetParameters on s.
+func (s *Set) Parameters() string { return s.parameters }
+
+
 // SetProgram sets the program name to program.  Normally it is determined
 // from the zeroth command line argument (see os.Args).
 func SetProgram(program string) {
@@ -155,6 +159,9 @@ func SetProgram(program string) {
 func (s *Set) SetProgram(program string) {
 	s.program = program
 }
+
+// Program returns the program name associated with Set s.
+func (s *Set) Program() string { return s.program }
 
 // SetUsage sets the function used by Parse to display the commands usage
 // on error.  It defaults to calling PrintUsage(os.Stderr).

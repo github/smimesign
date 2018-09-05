@@ -8,13 +8,24 @@
   version = "2018.01.18"
 
 [[projects]]
-  branch = "master"
+  name = "github.com/davecgh/go-spew"
+  packages = ["spew"]
+  revision = "8991bc29aa16c548c550c7ff78260e27b9ab7c73"
+  version = "v1.1.1"
+
+[[projects]]
+  name = "github.com/github/go"
+  packages = ["errors"]
+  revision = "5fdabba070e64b63f777a6e32f12b23303aef6ca"
+  version = "v1.0.0"
+
+[[projects]]
   name = "github.com/mastahyeti/certstore"
   packages = ["."]
   revision = "b5c7743eef9630309aec884accc77963ea8b1199"
+  version = "0.0.1"
 
 [[projects]]
-  branch = "master"
   name = "github.com/mastahyeti/cms"
   packages = [
     ".",
@@ -22,19 +33,41 @@
     "protocol",
     "timestamp"
   ]
-  revision = "88f9fea4900224804e36fd18aced191a11cc7dd6"
+  revision = "a229af0c48a09fb2fd15983d09eb47052521ce03"
+  version = "0.0.2"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/mastahyeti/fakeca"
+  packages = ["."]
+  revision = "5f91b32d1226951f9631342eee20f5142387a216"
 
 [[projects]]
   branch = "master"
   name = "github.com/pborman/getopt"
   packages = ["v2"]
-  revision = "7148bc3a4c3008adfcab60cbebfd0576018f330b"
+  revision = "2b5b3bfb099b7da3e2f433966f8ab1d5803e0876"
 
 [[projects]]
   name = "github.com/pkg/errors"
   packages = ["."]
   revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
   version = "v0.8.0"
+
+[[projects]]
+  name = "github.com/pmezard/go-difflib"
+  packages = ["difflib"]
+  revision = "792786c7400a136282c1664665ae0a8db921c6c2"
+  version = "v1.0.0"
+
+[[projects]]
+  name = "github.com/stretchr/testify"
+  packages = [
+    "assert",
+    "require"
+  ]
+  revision = "f35b8ab0b5a2cef36673838d662e249dd9c94686"
+  version = "v1.2.2"
 
 [[projects]]
   branch = "master"
@@ -46,11 +79,11 @@
     "openpgp/packet",
     "openpgp/s2k"
   ]
-  revision = "432090b8f568c018896cd8a0fb0345872bbac6ce"
+  revision = "0709b304e793a5edb4a2c0145f281ecdc20838a4"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "b6729a8c0a898bff6db942fff599b3fcad552ad12e47c49c99aeda153814da32"
+  inputs-digest = "d52fdfd67102b930816a81ab5ee83b9dfde4aee5b410be0e37ab88aaa837552d"
   solver-name = "gps-cdcl"
   solver-version = 1

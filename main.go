@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"os"
 
 	"github.com/mastahyeti/certstore"
@@ -21,15 +22,23 @@ var (
 	listKeysFlag = getopt.BoolLong("list-keys", 0, "show keys")
 
 	// Option flags
-	localUserOpt   = getopt.StringLong("local-user", 'u', "", "use USER-ID to sign", "USER-ID")
-	detachSignFlag = getopt.BoolLong("detach-sign", 'b', "make a detached signature")
-	armorFlag      = getopt.BoolLong("armor", 'a', "create ascii armored output")
-	statusFdOpt    = getopt.IntLong("status-fd", 0, -1, "write special status strings to the file descriptor n.", "n")
-	keyFormatOpt   = getopt.EnumLong("keyid-format", 0, []string{"long"}, "long", "select  how  to  display key IDs.", "{long}")
-	tsaOpt         = getopt.StringLong("timestamp-authority", 't', defaultTSA, "URL of RFC3161 timestamp authority to use for timestamping")
-	fileArgs       []string
+	localUserOpt    = getopt.StringLong("local-user", 'u', "", "use USER-ID to sign", "USER-ID")
+	detachSignFlag  = getopt.BoolLong("detach-sign", 'b', "make a detached signature")
+	armorFlag       = getopt.BoolLong("armor", 'a', "create ascii armored output")
+	statusFdOpt     = getopt.IntLong("status-fd", 0, -1, "write special status strings to the file descriptor n.", "n")
+	keyFormatOpt    = getopt.EnumLong("keyid-format", 0, []string{"long"}, "long", "select  how  to  display key IDs.", "{long}")
+	tsaOpt          = getopt.StringLong("timestamp-authority", 't', defaultTSA, "URL of RFC3161 timestamp authority to use for timestamping", "url")
+	includeCertsOpt = getopt.IntLong("include-certs", 0, -2, "-3 is the same as -2, but ommits issuer when cert has Authority Information Access extension. -2 includes all certs except root. -1 includes all certs. 0 includes no certs. 1 includes leaf cert. >1 includes n from the leaf. Default -2.", "n")
+
+	// Remaining arguments
+	fileArgs []string
 
 	idents []certstore.Identity
+
+	// these are changed in tests
+	stdin  io.ReadCloser  = os.Stdin
+	stdout io.WriteCloser = os.Stdout
+	stderr io.WriteCloser = os.Stderr
 )
 
 func main() {
@@ -41,7 +50,7 @@ func main() {
 
 func runCommand() error {
 	// Parse CLI args
-	getopt.HelpColumn = 30
+	getopt.HelpColumn = 40
 	getopt.SetParameters("[files]")
 	getopt.Parse()
 	fileArgs = getopt.Args()

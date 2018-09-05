@@ -26,12 +26,12 @@
   version = "2018.1.18"
 
 [[constraint]]
-  branch = "master"
   name = "github.com/mastahyeti/certstore"
+  version = "0.0.1"
 
 [[constraint]]
-  branch = "master"
   name = "github.com/mastahyeti/cms"
+  version = "0.0.2"
 
 [[constraint]]
   branch = "master"

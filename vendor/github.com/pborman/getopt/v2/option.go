@@ -17,6 +17,14 @@ type Option interface {
 	// as a string, else it will be the long name.
 	Name() string
 
+	// ShortName always returns the short name of the option, or "" if there
+	// is no short name.  The name does not include the "-".
+	ShortName() string
+
+	// LongName always returns the long name of the option, or "" if there
+	// is no long name.  The name does not include the "--".
+	LongName() string
+
 	// IsFlag returns true if Option is a flag.
 	IsFlag() bool
 
@@ -132,6 +140,17 @@ func (o *option) Name() string {
 		return "-" + string(o.short)
 	}
 	return "--" + o.long
+}
+
+func (o *option) ShortName() string {
+	if o.short != 0 {
+		return string(o.short)
+	}
+	return ""
+}
+
+func (o *option) LongName() string {
+	return o.long
 }
 
 // Reset rests an option so that it appears it has not yet been seen.

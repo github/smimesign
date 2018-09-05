@@ -595,7 +595,7 @@ func (sd *SignedData) AddSignerInfo(chain []*x509.Certificate, signer crypto.Sig
 	)
 
 	for _, c := range chain {
-		if err = sd.addCertificate(c); err != nil {
+		if err = sd.AddCertificate(c); err != nil {
 			return err
 		}
 
@@ -697,8 +697,13 @@ func digestAlgorithmForPublicKey(pub crypto.PublicKey) pkix.AlgorithmIdentifier 
 	return pkix.AlgorithmIdentifier{Algorithm: oid.DigestAlgorithmSHA256}
 }
 
-// addCertificate adds a *x509.Certificate.
-func (sd *SignedData) addCertificate(cert *x509.Certificate) error {
+// ClearCertificates removes all certificates.
+func (sd *SignedData) ClearCertificates() {
+	sd.Certificates = []asn1.RawValue{}
+}
+
+// AddCertificate adds a *x509.Certificate.
+func (sd *SignedData) AddCertificate(cert *x509.Certificate) error {
 	for _, existing := range sd.Certificates {
 		if bytes.Equal(existing.Bytes, cert.Raw) {
 			return errors.New("certificate already added")
