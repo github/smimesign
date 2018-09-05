@@ -13,7 +13,7 @@ func TestSign(t *testing.T) {
 	defer testSetup(t, "--sign", "-u", certHexFingerprint(leaf.Certificate))()
 
 	stdinBuf.WriteString("hello, world!")
-	commandSign()
+	require.NoError(t, commandSign())
 	sd, err := cms.ParseSignedData(stdoutBuf.Bytes())
 	require.NoError(t, err)
 
@@ -25,7 +25,7 @@ func TestSignIncludeCertsAIA(t *testing.T) {
 	defer testSetup(t, "--sign", "-u", certHexFingerprint(aiaLeaf.Certificate))()
 
 	stdinBuf.WriteString("hello, world!")
-	commandSign()
+	require.NoError(t, commandSign())
 
 	ci, err := protocol.ParseContentInfo(stdoutBuf.Bytes())
 	require.NoError(t, err)
@@ -44,7 +44,7 @@ func TestSignIncludeCertsDefault(t *testing.T) {
 	defer testSetup(t, "--sign", "-u", certHexFingerprint(leaf.Certificate))()
 
 	stdinBuf.WriteString("hello, world!")
-	commandSign()
+	require.NoError(t, commandSign())
 
 	ci, err := protocol.ParseContentInfo(stdoutBuf.Bytes())
 	require.NoError(t, err)
@@ -64,7 +64,7 @@ func TestSignIncludeCertsMinus3(t *testing.T) {
 	defer testSetup(t, "--sign", "--include-certs=-3", "-u", certHexFingerprint(leaf.Certificate))()
 
 	stdinBuf.WriteString("hello, world!")
-	commandSign()
+	require.NoError(t, commandSign())
 
 	ci, err := protocol.ParseContentInfo(stdoutBuf.Bytes())
 	require.NoError(t, err)
@@ -84,7 +84,7 @@ func TestSignIncludeCertsMinus2(t *testing.T) {
 	defer testSetup(t, "--sign", "--include-certs=-2", "-u", certHexFingerprint(leaf.Certificate))()
 
 	stdinBuf.WriteString("hello, world!")
-	commandSign()
+	require.NoError(t, commandSign())
 
 	ci, err := protocol.ParseContentInfo(stdoutBuf.Bytes())
 	require.NoError(t, err)
@@ -104,7 +104,7 @@ func TestSignIncludeCertsMinus1(t *testing.T) {
 	defer testSetup(t, "--sign", "--include-certs=-1", "-u", certHexFingerprint(leaf.Certificate))()
 
 	stdinBuf.WriteString("hello, world!")
-	commandSign()
+	require.NoError(t, commandSign())
 
 	ci, err := protocol.ParseContentInfo(stdoutBuf.Bytes())
 	require.NoError(t, err)
@@ -125,7 +125,7 @@ func TestSignIncludeCerts0(t *testing.T) {
 	defer testSetup(t, "--sign", "--include-certs=0", "-u", certHexFingerprint(leaf.Certificate))()
 
 	stdinBuf.WriteString("hello, world!")
-	commandSign()
+	require.NoError(t, commandSign())
 
 	ci, err := protocol.ParseContentInfo(stdoutBuf.Bytes())
 	require.NoError(t, err)
@@ -143,7 +143,7 @@ func TestSignIncludeCerts1(t *testing.T) {
 	defer testSetup(t, "--sign", "--include-certs=1", "-u", certHexFingerprint(leaf.Certificate))()
 
 	stdinBuf.WriteString("hello, world!")
-	commandSign()
+	require.NoError(t, commandSign())
 
 	ci, err := protocol.ParseContentInfo(stdoutBuf.Bytes())
 	require.NoError(t, err)
@@ -162,7 +162,7 @@ func TestSignIncludeCerts2(t *testing.T) {
 	defer testSetup(t, "--sign", "--include-certs=2", "-u", certHexFingerprint(leaf.Certificate))()
 
 	stdinBuf.WriteString("hello, world!")
-	commandSign()
+	require.NoError(t, commandSign())
 
 	ci, err := protocol.ParseContentInfo(stdoutBuf.Bytes())
 	require.NoError(t, err)
@@ -182,7 +182,7 @@ func TestSignIncludeCerts3(t *testing.T) {
 	defer testSetup(t, "--sign", "--include-certs=3", "-u", certHexFingerprint(leaf.Certificate))()
 
 	stdinBuf.WriteString("hello, world!")
-	commandSign()
+	require.NoError(t, commandSign())
 
 	ci, err := protocol.ParseContentInfo(stdoutBuf.Bytes())
 	require.NoError(t, err)
@@ -203,7 +203,7 @@ func TestSignIncludeCerts4(t *testing.T) {
 	defer testSetup(t, "--sign", "--include-certs=4", "-u", certHexFingerprint(leaf.Certificate))()
 
 	stdinBuf.WriteString("hello, world!")
-	commandSign()
+	require.NoError(t, commandSign())
 
 	ci, err := protocol.ParseContentInfo(stdoutBuf.Bytes())
 	require.NoError(t, err)

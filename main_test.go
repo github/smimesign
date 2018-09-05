@@ -89,16 +89,9 @@ func resetIO() {
 func testSetup(t *testing.T, args ...string) func() {
 	t.Helper()
 
-	failerWas := failer
 	resetFunc := func() {
-		failer = failerWas
 		resetIO()
 		getopt.Reset()
-	}
-
-	failer = func(a ...interface{}) {
-		t.Helper()
-		t.Fatal(a...)
 	}
 
 	getopt.CommandLine.Parse(append([]string{"smimesign"}, args...))
