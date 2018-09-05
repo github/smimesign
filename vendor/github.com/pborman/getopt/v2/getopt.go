@@ -7,6 +7,9 @@
 // cannot be used to write a program that parses flags the way ls or ssh does,
 // for example.  Version 2 of this package has a simplified API.
 //
+// See the github.com/pborman/options package for a simple structure based
+// interface to this package.
+//
 // USAGE
 //
 // Getopt supports functionality found in both the standard BSD getopt as well
@@ -221,8 +224,24 @@ var DisplayWidth = 80
 //        the u flag's usage is quite long
 var HelpColumn = 20
 
-// PrintUsage prints the usage of the program to w.
+// PrintUsage prints the usage line and set of options of set S to w.
 func (s *Set) PrintUsage(w io.Writer) {
+	parts := make([]string, 2, 4)
+	parts[0] = "Usage:"
+	parts[1] = s.program
+	if usage := s.UsageLine(); usage != "" {
+		parts = append(parts, usage)
+	}
+	if s.parameters != "" {
+		parts = append(parts, s.parameters)
+	}
+	fmt.Fprintln(w, strings.Join(parts, " "))
+	s.PrintOptions(w)
+}
+
+// UsageLine returns the usage line for the set s.  The set's program name and
+// parameters, if any, are not included.
+func (s *Set) UsageLine() string {
 	sort.Sort(s.options)
 	flags := ""
 
@@ -274,13 +293,9 @@ func (s *Set) PrintUsage(w io.Writer) {
 	}
 	flags = strings.Join(opts, "] [")
 	if flags != "" {
-		flags = " [" + flags + "]"
+		flags = "[" + flags + "]"
 	}
-	if s.parameters != "" {
-		flags += " " + s.parameters
-	}
-	fmt.Fprintf(w, "Usage: %s%s\n", s.program, flags)
-	s.PrintOptions(w)
+	return flags
 }
 
 // PrintOptions prints the list of options in s to w.

@@ -10,14 +10,20 @@
 [[projects]]
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
-  revision = "346938d642f2ec3594ed81d874461961cd0faa76"
-  version = "v1.1.0"
+  revision = "8991bc29aa16c548c550c7ff78260e27b9ab7c73"
+  version = "v1.1.1"
 
 [[projects]]
-  branch = "master"
+  name = "github.com/github/go"
+  packages = ["errors"]
+  revision = "5fdabba070e64b63f777a6e32f12b23303aef6ca"
+  version = "v1.0.0"
+
+[[projects]]
   name = "github.com/mastahyeti/certstore"
   packages = ["."]
   revision = "b5c7743eef9630309aec884accc77963ea8b1199"
+  version = "0.0.1"
 
 [[projects]]
   name = "github.com/mastahyeti/cms"
@@ -40,7 +46,7 @@
   branch = "master"
   name = "github.com/pborman/getopt"
   packages = ["v2"]
-  revision = "7148bc3a4c3008adfcab60cbebfd0576018f330b"
+  revision = "2b5b3bfb099b7da3e2f433966f8ab1d5803e0876"
 
 [[projects]]
   name = "github.com/pkg/errors"
@@ -73,11 +79,11 @@
     "openpgp/packet",
     "openpgp/s2k"
   ]
-  revision = "c126467f60eb25f8f27e5a981f32a87e3965053f"
+  revision = "0709b304e793a5edb4a2c0145f281ecdc20838a4"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "d121856dbcff88ef0d4afb5b3b5d21a6d3b30e82b6c3876db0e3e3802e03f27b"
+  inputs-digest = "d52fdfd67102b930816a81ab5ee83b9dfde4aee5b410be0e37ab88aaa837552d"
   solver-name = "gps-cdcl"
   solver-version = 1
