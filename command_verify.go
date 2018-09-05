@@ -8,20 +8,21 @@ import (
 	"os"
 
 	"github.com/certifi/gocertifi"
+	"github.com/github/go/errors"
 	"github.com/mastahyeti/cms"
 )
 
-func commandVerify() {
+func commandVerify() error {
 	sNewSig.emit()
 
 	if len(fileArgs) < 2 {
-		verifyAttached()
-	} else {
-		verifyDetached()
+		return verifyAttached()
 	}
+
+	return verifyDetached()
 }
 
-func verifyAttached() {
+func verifyAttached() error {
 	var (
 		f   *os.File
 		err error
@@ -30,7 +31,7 @@ func verifyAttached() {
 	// Read in signature
 	if len(fileArgs) == 1 {
 		if f, err = os.Open(fileArgs[0]); err != nil {
-			failef(err, "failed to open signature file (%s)", fileArgs[0])
+			return errors.Wrapf(err, "failed to open signature file (%s)", fileArgs[0])
 		}
 		defer f.Close()
 	} else {
@@ -39,7 +40,7 @@ func verifyAttached() {
 
 	buf := new(bytes.Buffer)
 	if _, err = io.Copy(buf, f); err != nil {
-		faile(err, "failed to read signature")
+		return errors.Wrap(err, "failed to read signature")
 	}
 
 	// Try decoding as PEM
@@ -53,7 +54,7 @@ func verifyAttached() {
 	// Parse signature
 	sd, err := cms.ParseSignedData(der)
 	if err != nil {
-		faile(err, "failed to parse signature")
+		return errors.Wrap(err, "failed to parse signature")
 	}
 
 	// Verify signature
@@ -66,7 +67,7 @@ func verifyAttached() {
 			sErrSig.emit()
 		}
 
-		faile(err, "failed to verify signature")
+		return errors.Wrap(err, "failed to verify signature")
 	}
 
 	emitGoodSig(chains)
@@ -74,19 +75,21 @@ func verifyAttached() {
 	// TODO: Maybe split up signature checking and certificate checking so we can
 	// output something more meaningful.
 	emitTrustFully()
+
+	return nil
 }
 
-func verifyDetached() {
+func verifyDetached() error {
 	// Read in signature
 	f, err := os.Open(fileArgs[0])
 	if err != nil {
-		failef(err, "failed to open signature file (%s)", fileArgs[0])
+		errors.Wrapf(err, "failed to open signature file (%s)", fileArgs[0])
 	}
 	defer f.Close()
 
 	buf := new(bytes.Buffer)
 	if _, err = io.Copy(buf, f); err != nil {
-		faile(err, "failed to read signature file")
+		return errors.Wrap(err, "failed to read signature file")
 	}
 
 	// Try decoding as PEM
@@ -100,7 +103,7 @@ func verifyDetached() {
 	// Parse signature
 	sd, err := cms.ParseSignedData(der)
 	if err != nil {
-		faile(err, "failed to parse signature")
+		return errors.Wrap(err, "failed to parse signature")
 	}
 
 	// Read in signed data
@@ -108,7 +111,7 @@ func verifyDetached() {
 		f = os.Stdin
 	} else {
 		if f, err = os.Open(fileArgs[1]); err != nil {
-			failef(err, "failed to open message file (%s)", fileArgs[1])
+			errors.Wrapf(err, "failed to open message file (%s)", fileArgs[1])
 		}
 		defer f.Close()
 	}
@@ -116,7 +119,7 @@ func verifyDetached() {
 	// Verify signature
 	buf.Reset()
 	if _, err = io.Copy(buf, f); err != nil {
-		faile(err, "failed to read message file")
+		return errors.Wrap(err, "failed to read message file")
 	}
 
 	chains, err := sd.VerifyDetached(buf.Bytes(), verifyOpts())
@@ -128,7 +131,7 @@ func verifyDetached() {
 			sErrSig.emit()
 		}
 
-		faile(err, "failed to verify signature")
+		return errors.Wrap(err, "failed to verify signature")
 	}
 
 	emitGoodSig(chains)
@@ -136,6 +139,8 @@ func verifyDetached() {
 	// TODO: Maybe split up signature checking and certificate checking so we can
 	// output something more meaningful.
 	emitTrustFully()
+
+	return nil
 }
 
 func verifyOpts() x509.VerifyOptions {

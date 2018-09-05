@@ -3,13 +3,15 @@ package main
 import (
 	"fmt"
 	"strings"
+
+	"github.com/pkg/errors"
 )
 
-func commandListKeys() {
+func commandListKeys() error {
 	for j, ident := range idents {
 		cert, err := ident.Certificate()
 		if err != nil {
-			faile(err, "failed to get identity certificate")
+			return errors.Wrap(err, "failed to get identity certificate")
 		}
 
 		if j > 0 {
@@ -24,4 +26,6 @@ func commandListKeys() {
 		fmt.Println("  Subject:", cert.Subject.ToRDNSequence().String())
 		fmt.Println("   Emails:", strings.Join(certEmails(cert), ", "))
 	}
+
+	return nil
 }

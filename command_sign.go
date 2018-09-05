@@ -13,13 +13,13 @@ import (
 	"github.com/pkg/errors"
 )
 
-func commandSign() {
+func commandSign() error {
 	userIdent, err := findUserIdentity()
 	if err != nil {
-		faile(err, "failed to get identity matching specified user-id")
+		return errors.Wrap(err, "failed to get identity matching specified user-id")
 	}
 	if userIdent == nil {
-		failf("Could not find identity matching specified user-id: %s\n", *localUserOpt)
+		return fmt.Errorf("Could not find identity matching specified user-id: %s\n", *localUserOpt)
 	}
 
 	// Git is looking for "\n[GNUPG:] SIG_CREATED ", meaning we need to print a
@@ -29,25 +29,25 @@ func commandSign() {
 
 	chain, err := userIdent.CertificateChain()
 	if err != nil {
-		faile(err, "failed to get idenity certificate chain")
+		return errors.Wrap(err, "failed to get idenity certificate chain")
 	}
 
 	signer, err := userIdent.Signer()
 	if err != nil {
-		faile(err, "failed to get idenity signer")
+		return errors.Wrap(err, "failed to get idenity signer")
 	}
 
 	dataBuf := new(bytes.Buffer)
 	if _, err = io.Copy(dataBuf, os.Stdin); err != nil {
-		faile(err, "failed to read message from stdin")
+		return errors.Wrap(err, "failed to read message from stdin")
 	}
 
 	sd, err := cms.NewSignedData(dataBuf.Bytes())
 	if err != nil {
-		faile(err, "failed to create signed data")
+		return errors.Wrap(err, "failed to create signed data")
 	}
 	if err := sd.Sign(chain, signer); err != nil {
-		faile(err, "failed to sign message")
+		return errors.Wrap(err, "failed to sign message")
 	}
 	if *detachSignFlag {
 		sd.Detached()
@@ -55,13 +55,13 @@ func commandSign() {
 
 	if len(*tsaOpt) > 0 {
 		if err = sd.AddTimestamps(*tsaOpt); err != nil {
-			faile(err, "failed to add timestamp")
+			return errors.Wrap(err, "failed to add timestamp")
 		}
 	}
 
 	der, err := sd.ToDER()
 	if err != nil {
-		faile(err, "failed to serialize signature")
+		return errors.Wrap(err, "failed to serialize signature")
 	}
 
 	emitSigCreated(chain[0], *detachSignFlag)
@@ -75,8 +75,10 @@ func commandSign() {
 		_, err = os.Stdout.Write(der)
 	}
 	if err != nil {
-		fail("failed to write signature")
+		return errors.New("failed to write signature")
 	}
+
+	return nil
 }
 
 // findUserIdentity attempts to find an identity to sign with in the certstore
