@@ -1,3 +1,0 @@
-#!/bin/bash
-
-dep ensure -v && dep prune

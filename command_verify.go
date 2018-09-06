@@ -8,8 +8,8 @@ import (
 	"os"
 
 	"github.com/certifi/gocertifi"
-	"github.com/github/go/errors"
 	"github.com/mastahyeti/cms"
+	"github.com/pkg/errors"
 )
 
 func commandVerify() error {

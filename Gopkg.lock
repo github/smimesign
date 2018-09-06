@@ -14,12 +14,6 @@
   version = "v1.1.1"
 
 [[projects]]
-  name = "github.com/github/go"
-  packages = ["errors"]
-  revision = "5fdabba070e64b63f777a6e32f12b23303aef6ca"
-  version = "v1.0.0"
-
-[[projects]]
   name = "github.com/mastahyeti/certstore"
   packages = ["."]
   revision = "b5c7743eef9630309aec884accc77963ea8b1199"
