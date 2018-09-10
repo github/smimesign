@@ -113,7 +113,7 @@ func (s *winStore) Identities() ([]Identity, error) {
 		}
 
 		// maximum chain length. this is arbitrary
-		const maxChain = 1 << 30
+		const maxChain = 1 << 10
 
 		// rgpChain is actually an array, but we only care about the first one.
 		simpleChain := *chainCtx.rgpChain
