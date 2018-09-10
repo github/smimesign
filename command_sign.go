@@ -19,7 +19,7 @@ func commandSign() error {
 		return errors.Wrap(err, "failed to get identity matching specified user-id")
 	}
 	if userIdent == nil {
-		return fmt.Errorf("could not find identity matching specified user-id: %s\n", *localUserOpt)
+		return fmt.Errorf("could not find identity matching specified user-id: %s", *localUserOpt)
 	}
 
 	// Git is looking for "\n[GNUPG:] SIG_CREATED ", meaning we need to print a
