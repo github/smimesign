@@ -13,10 +13,10 @@ install:
   - refreshenv
 
 build_script:
-  - bash --login -c 'PATH="$PATH;C:\msys64\mingw64\bin" CC_FOR_TARGET=C:\msys64\mingw64\bin\gcc.exe GOARCH=amd64 go build'
+  - bash --login -c 'GOOS=windows PATH="$PATH;C:\msys64\mingw64\bin" CC_FOR_TARGET=C:\msys64\mingw64\bin\gcc.exe GOARCH=amd64 go build'
   - mv smimesign.exe smimesign-x64.exe
 
-  - bash --login -c 'PATH="$PATH;C:\MinGW\bin" CC_FOR_TARGET=C:\MinGW\bin\gcc.exe GOARCH=386 go build'
+  - bash --login -c 'GOOS=windows PATH="$PATH;C:\MinGW\bin" CC_FOR_TARGET=C:\MinGW\bin\gcc.exe GOARCH=386 go build'
   - mv smimesign.exe smimesign-x86.exe
 
 
