@@ -24,7 +24,26 @@ PKI is used in a variety of applications for encrypting or authenticating commun
 
 ## Configuring Git
 
-Git needs to be told to sign commits and tags using smimesign instead of GnuPG. This can be configured on a global or per-repository level.
+Git needs to be told to sign commits and tags using smimesign instead of GnuPG. This can be configured on a global or per-repository level. The Git configuration directives for changing signing tools was changed in version 2.19.
+
+### Git versions 2.19 and newer
+
+**Configure Git to use smimesign for a single repository:**
+
+```bash
+$ cd /path/to/my/repository
+$ git config --local gpg.x509.program smimesign
+$ git config --local gpg.format x509
+```
+
+**Configure Git to use smimesign for all repositories:**
+
+```bash
+$ git config --global gpg.x509.program smimesign
+$ git config --global gpg.format x509
+```
+
+### Git versions 2.18 and older
 
 **Configure Git to use smimesign for a single repository:**
 
