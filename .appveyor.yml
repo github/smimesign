@@ -1,31 +1,38 @@
-version: "{build}"
-clone_folder: c:\gopath\src\github.com\github\smimesign
+version: '{build}-{branch}'
+
+os: 'Visual Studio 2015'
+
 environment:
-  GOPATH: c:\gopath
+  matrix:
+    - ARCH: x64
+      MSYS2_ARCH: x86_64
+      MSYS2_DIR: msys64
+      MSYSTEM: MINGW64
+      GOPATH: c:\gopath
+      GOROOT: c:\go
+      GOARCH: amd64
+      EXTLD: x86_64-w64-mingw32-gcc
+    - ARCH: x86
+      MSYS2_ARCH: i686
+      MSYS2_DIR: msys64
+      MSYSTEM: MINGW32
+      GOPATH: c:\gopath
+      GOROOT: c:\go
+      GOARCH: 386
+      EXTLD: i686-w64-mingw32-gcc
 
-install:
-  - set PATH=%PATH%;C:\msys64\mingw64\bin
-  - go version
+clone_folder: C:\gopath\src\github.com\github/smimesign
+
+before_build:
+  # Go paths
+  - set PATH=%GOROOT%\bin;C:\%GOPATH%\bin;%PATH%
+  # MSYS paths
+  - set PATH=C:\%MSYS2_DIR%\%MSYSTEM%\bin;C:\%MSYS2_DIR%\usr\bin;%PATH%
+  # Install build deps
+  - bash -lc "for n in `seq 1 3`; do pacman --noconfirm -S mingw-w64-%MSYS2_ARCH%-libtool && break || sleep 15; done"
+
 build_script:
-  - set GOARCH=amd64
-  - go build
-  - mv smimesign.exe smimesign-x64.exe
-  - set GOARCH=386
-  - go build
-  - mv smimesign.exe smimesign-x86.exe
-test_script:
-  - go test -v
+  - go build -o smimesign-%GOARCH%.exe -ldflags "-w -extldflags \"-static\" -extld=%EXTLD%" -i .
+ 
 artifacts:
-  - path: smimesign-x64.exe
-
-# build_script:
-#   - bash --login -c 'GOOS=windows PATH="$PATH;C:\msys64\mingw64\bin" CC_FOR_TARGET=C:\msys64\mingw64\bin\gcc.exe GOARCH=amd64 go build'
-#   - mv smimesign.exe smimesign-x64.exe
-# 
-#   - bash --login -c 'GOOS=windows PATH="$PATH;C:\MinGW\bin" CC_FOR_TARGET=C:\MinGW\bin\gcc.exe GOARCH=386 go build'
-#   - mv smimesign.exe smimesign-x86.exe
-
-
-# artifacts:
-#   - path: smimesign-x64.exe
-#   - path: smimesign-x86.exe
+  - path: smimesign-%GOARCH%.exe
