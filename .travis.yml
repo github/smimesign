@@ -5,3 +5,4 @@ go:
   - "1.x"
 
 install: go get -v -t ./...
+
