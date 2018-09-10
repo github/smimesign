@@ -1,17 +1,17 @@
-skip_branch_with_pr: true
-
-clone_folder: c:\gopath\src\github.com\mastahyeti\certstore
+version: "{build}"
+clone_folder: c:\gopath\src\github.com\github\smimesign
 environment:
   GOPATH: c:\gopath
 
 install:
   - set PATH=%PATH%;C:\msys64\mingw64\bin
   - go version
-  - refreshenv
-
 build_script:
   - go build
-  - ls
+test_script:
+  - go test -v
+
+# build_script:
 #   - bash --login -c 'GOOS=windows PATH="$PATH;C:\msys64\mingw64\bin" CC_FOR_TARGET=C:\msys64\mingw64\bin\gcc.exe GOARCH=amd64 go build'
 #   - mv smimesign.exe smimesign-x64.exe
 # 
