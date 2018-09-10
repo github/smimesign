@@ -24,6 +24,7 @@ environment:
 clone_folder: C:\gopath\src\github.com\github/smimesign
 
 before_build:
+  - set CGO_ENABLED=1
   # Go paths
   - set PATH=%GOROOT%\bin;C:\%GOPATH%\bin;%PATH%
   # MSYS paths
