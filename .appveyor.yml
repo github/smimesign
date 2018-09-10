@@ -1,0 +1,27 @@
+skip_branch_with_pr: true
+
+environment:
+  GOPATH: $(HOMEDRIVE)$(HOMEPATH)\go
+  MSYSTEM: MINGW64
+
+clone_folder: $(GOPATH)\src\github.com\github\smimesign
+
+install:
+  - rd C:\Go /s /q
+  - cinst golang --version 1.11.0 -y
+  - cinst InnoSetup -y
+  - refreshenv
+
+build_script:
+  # - set PATH=%PATH%;C:\msys64\mingw64\bin
+
+  - bash --login -c 'CC_FOR_TARGET=C:\msys64\mingw64\bin\gcc.exe GOARCH=amd64 go build'
+  - mv smimesign.exe smimesign-x64.exe
+
+  - bash --login -c 'CC_FOR_TARGET=C:\MinGW\bin\gcc.exe GOARCH=386 go build'
+  - mv smimesign.exe smimesign-x86.exe
+
+
+artifacts:
+  - path: smimesign-x64.exe
+  - path: smimesign-x86.exe
