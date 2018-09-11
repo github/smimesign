@@ -9,6 +9,8 @@ go:
 install: ''
 
 script:
+  - go version
+  - echo $TRAVIS_GO_VERSION
   - GIT_VERSION=$(git describe --tags)
   - go build -o smimesign-$GIT_VERSION-macos .
   - go test -v ./...
