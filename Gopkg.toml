@@ -27,7 +27,7 @@
 
 [[constraint]]
   name = "github.com/mastahyeti/certstore"
-  version = "0.0.1"
+  version = "0.0.2"
 
 [[constraint]]
   name = "github.com/mastahyeti/cms"
