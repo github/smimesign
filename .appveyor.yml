@@ -39,7 +39,7 @@ build_script:
   - go build -o smimesign-%GIT_VERSION%-%GOARCH%.exe -ldflags "-w -extldflags \"-static\" -extld=%EXTLD%" -i .
 
 test_script:
-  - go test ./...
+  - go test -v ./...
 
 artifacts:
   - path: smimesign-%GIT_VERSION%-%GOARCH%.exe
@@ -49,7 +49,7 @@ deploy:
   description: v$(GIT_VERSION)
   provider: GitHub
   auth_token:
-    secure: QmCiauB0OB33/8khQxyUTeT0Xm1nX/yfM9QaGMoB5xG83Z4edk8+1lT67YwHpxs2
+    secure: sEpJVeD+tAT8soMS72SeGXEv1UVg7gG1ySy8rEfAO1T5HCaxD3jE6YoGmYOvKcbx
   artifact: /.*\.exe/
   draft: false
   prerelease: true
