@@ -1,0 +1,59 @@
+skip_branch_with_pr: true
+version: '{build}-{branch}'
+
+os: 'Visual Studio 2015'
+
+environment:
+  matrix:
+    - ARCH: x64
+      MSYS2_ARCH: x86_64
+      MSYS2_DIR: msys64
+      MSYSTEM: MINGW64
+      GOPATH: c:\gopath
+      GOROOT: c:\go
+      GOARCH: amd64
+      EXTLD: x86_64-w64-mingw32-gcc
+    - ARCH: x86
+      MSYS2_ARCH: i686
+      MSYS2_DIR: msys64
+      MSYSTEM: MINGW32
+      GOPATH: c:\gopath
+      GOROOT: c:\go
+      GOARCH: 386
+      EXTLD: i686-w64-mingw32-gcc
+
+clone_folder: C:\gopath\src\github.com\github\smimesign
+
+before_build:
+  # Always build with CGO
+  - set CGO_ENABLED=1
+  # Go paths
+  - set PATH=%GOROOT%\bin;C:\%GOPATH%\bin;%PATH%
+  # MSYS paths
+  - set PATH=C:\%MSYS2_DIR%\%MSYSTEM%\bin;C:\%MSYS2_DIR%\usr\bin;%PATH%
+  # Install build deps
+  - bash -lc "for n in `seq 1 3`; do pacman --noconfirm -S mingw-w64-%MSYS2_ARCH%-libtool && break || sleep 15; done"
+
+build_script:
+  - git describe > version
+  - set /p GIT_VERSION= < version
+  - go build -o smimesign-%GIT_VERSION%-%GOARCH%.exe -ldflags "-w -extldflags \"-static\" -extld=%EXTLD%" -i .
+
+test_script:
+  - go test -v ./...
+
+artifacts:
+  - path: smimesign-%GIT_VERSION%-%GOARCH%.exe
+
+deploy:
+  release: v$(GIT_VERSION)
+  description: v$(GIT_VERSION)
+  provider: GitHub
+  auth_token:
+    secure: sEpJVeD+tAT8soMS72SeGXEv1UVg7gG1ySy8rEfAO1T5HCaxD3jE6YoGmYOvKcbx
+  artifact: /.*\.exe/
+  draft: false
+  prerelease: false
+  on:
+    branch: master
+    appveyor_repo_tag: true
