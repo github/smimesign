@@ -14,7 +14,7 @@ git:
 install: ''
 
 script:
-  - GIT_VERSION=$(git describe --tags || git rev-parse --short HEAD)
+  - GIT_VERSION=$(git describe --tags)
   - go build -o smimesign-$GIT_VERSION-macos .
   - go test -v ./...
 
