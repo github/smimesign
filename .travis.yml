@@ -10,6 +10,7 @@ script:
   - go build -o smimesign-$GIT_VERSION-macos .
 
 deploy:
+  name: v$GIT_VERSION
   provider: releases
   skip_cleanup: true
   file: smimesign-$GIT_VERSION-macos
