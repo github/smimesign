@@ -15,14 +15,15 @@ install: ''
 
 script:
   - GIT_VERSION=$(git describe --tags)
-  - go build -o smimesign-$GIT_VERSION-macos .
+  - go build -o smimesign .
+  - tar czf smimesign-$GIT_VERSION-macos.tgz smimesign
   - go test -v ./...
 
 deploy:
   name: v$GIT_VERSION
   provider: releases
   skip_cleanup: true
-  file: smimesign-$GIT_VERSION-macos
+  file: smimesign-$GIT_VERSION-macos.tgz
   on:
     tags: true
     go: 1.x
