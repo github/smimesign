@@ -1,4 +1,4 @@
-# smimesign (S/MIME Sign)
+# smimesign (S/MIME Sign) [![Windows Build Status](https://ci.appveyor.com/api/projects/status/hs3o1m9ornnp9d52/branch/master?svg=true)](https://ci.appveyor.com/project/mastahyeti/smimesign-0bhgj/branch/master)
 
 Smimesign is an S/MIME signing utility that is compatible with Git. This allows developers to sign their Git commits and tags using X.509 certificates issued by pubic certificate authorities or their organization's internal certificate authority. Smimesign uses keys and certificates already stored in the *macOS Keychain* or the *Windows Certificate Store*.
 
@@ -86,4 +86,4 @@ Many Yubikey models support the PIV smart card interface. To get your operating 
 
 Additionally, to manage the manage certificates and keys on the Yubikey on macOS, you'll need the [Yubikey PIV Manager](https://www.yubico.com/support/knowledge-base/categories/articles/smart-card-tools/) (GUI) or the [Yubikey PIV Tool](https://www.yubico.com/support/knowledge-base/categories/articles/smart-card-tools/) (command line).
 
-![Yubikey PIV Keychain in macOS Keychain Access app](https://user-images.githubusercontent.com/1144197/36266495-cd626c02-122e-11e8-839d-aa840e792a64.png)
+![Yubikey PIV Keychain in macOS Keychain Access app](https://user-images.githubusercontent.com/248078/45328493-13705300-b511-11e8-97f4-1a04cf35cc6c.png)
