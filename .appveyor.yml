@@ -42,7 +42,7 @@ test_script:
   - go test -v ./...
 
 artifacts:
-  - path: /.*\.exe/
+  - path: smimesign-%GIT_VERSION%-%GOARCH%.exe
 
 deploy:
   release: v$(GIT_VERSION)
