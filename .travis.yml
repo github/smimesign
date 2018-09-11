@@ -1,10 +1,24 @@
 os: osx
 language: go
 go:
-  - "1.10.x"
+  # - "1.10.x"
   - "1.11.x"
-  - "1.x"
-  - master
+  # - "1.x"
+  # - master
 
 # skip install since dependencies are vendored
 install: ""
+
+script:
+  - XYZ=123
+  - echo $XYZ
+  - export QWER=234
+  - ech $QWER
+
+deploy:
+  provider: releases
+  api_key: "GITHUB OAUTH TOKEN"
+  file: "FILE TO UPLOAD"
+  skip_cleanup: true
+  on:
+    tags: true
