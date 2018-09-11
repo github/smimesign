@@ -3,5 +3,11 @@ go:
   - "1.10.x"
   - "1.11.x"
   - "1.x"
-
-install: go get -v -t ./...
+  - master
+ 
+ script: go test -v ./...
+ 
+ # only build PRs and master
+branches:
+  only:
+    - master
