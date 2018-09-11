@@ -22,9 +22,10 @@ environment:
       GOARCH: 386
       EXTLD: i686-w64-mingw32-gcc
 
-clone_folder: C:\gopath\src\github.com\github/smimesign
+clone_folder: C:\gopath\src\github.com\github\smimesign
 
 before_build:
+  # Always build with CGO
   - set CGO_ENABLED=1
   # Go paths
   - set PATH=%GOROOT%\bin;C:\%GOPATH%\bin;%PATH%
