@@ -35,7 +35,7 @@ before_build:
   - bash -lc "for n in `seq 1 3`; do pacman --noconfirm -S mingw-w64-%MSYS2_ARCH%-libtool && break || sleep 15; done"
 
 build_script:
-  - git describe --tags > version
+  - (git describe --tags || git rev-parse --short HEAD) > version
   - set /p GIT_VERSION= < version
   - go build -o smimesign-%GIT_VERSION%-windows-%GOARCH%.exe -ldflags "-w -extldflags \"-static\" -extld=%EXTLD%" -i .
 

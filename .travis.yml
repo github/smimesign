@@ -9,7 +9,7 @@ go:
 install: ''
 
 script:
-  - GIT_VERSION=$(git describe --tags)
+  - GIT_VERSION=$(git describe --tags || git rev-parse --short HEAD)
   - go build -o smimesign-$GIT_VERSION-macos .
   - go test -v ./...
 
