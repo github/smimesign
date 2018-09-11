@@ -37,13 +37,13 @@ before_build:
 build_script:
   - git describe --tags > version
   - set /p GIT_VERSION= < version
-  - go build -o smimesign-%GIT_VERSION%-%GOARCH%.exe -ldflags "-w -extldflags \"-static\" -extld=%EXTLD%" -i .
+  - go build -o smimesign-%GIT_VERSION%-windows-%GOARCH%.exe -ldflags "-w -extldflags \"-static\" -extld=%EXTLD%" -i .
 
 test_script:
   - go test -v ./...
 
 artifacts:
-  - path: smimesign-%GIT_VERSION%-%GOARCH%.exe
+  - path: smimesign-%GIT_VERSION%-windows-%GOARCH%.exe
 
 deploy:
   tag: $(GIT_VERSION)
