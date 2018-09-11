@@ -37,13 +37,14 @@ before_build:
 build_script:
   - git describe --tags > version
   - set /p GIT_VERSION= < version
-  - go build -o smimesign-%GIT_VERSION%-windows-%GOARCH%.exe -ldflags "-w -extldflags \"-static\" -extld=%EXTLD%" -i .
+  - go build -o smimesign-%GOARCH%.exe -ldflags "-w -extldflags \"-static\" -extld=%EXTLD%" -i .
+  - 7z a smimesign-%GIT_VERSION%-windows-%GOARCH%.zip smimesign-%GOARCH%.exe
 
 test_script:
   - go test -v ./...
 
 artifacts:
-  - path: smimesign-%GIT_VERSION%-windows-%GOARCH%.exe
+  - path: smimesign-%GIT_VERSION%-windows-%GOARCH%.zip
 
 deploy:
   tag: $(GIT_VERSION)
@@ -52,7 +53,7 @@ deploy:
   provider: GitHub
   auth_token:
     secure: sEpJVeD+tAT8soMS72SeGXEv1UVg7gG1ySy8rEfAO1T5HCaxD3jE6YoGmYOvKcbx
-  artifact: /.*\.exe/
+  artifact: /.*\.zip/
   draft: false
   prerelease: false
   on:
