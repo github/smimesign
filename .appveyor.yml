@@ -34,10 +34,25 @@ before_build:
   - bash -lc "for n in `seq 1 3`; do pacman --noconfirm -S mingw-w64-%MSYS2_ARCH%-libtool && break || sleep 15; done"
 
 build_script:
-  - go build -o smimesign-%GOARCH%.exe -ldflags "-w -extldflags \"-static\" -extld=%EXTLD%" -i .
-
-artifacts:
-  - path: smimesign-%GOARCH%.exe
+  - git describe > version
+  - set /p GIT_VERSION= < version
+  - go build -o smimesign-%GIT_VERSION%-%GOARCH%.exe -ldflags "-w -extldflags \"-static\" -extld=%EXTLD%" -i .
 
 test_script:
   - go test ./...
+
+artifacts:
+  - path: smimesign-%GIT_VERSION%-%GOARCH%.exe
+
+deploy:
+  release: %GIT_VERSION%
+  description: v%GIT_VERSION%
+  provider: GitHub
+  auth_token:
+    secure: QmCiauB0OB33/8khQxyUTeT0Xm1nX/yfM9QaGMoB5xG83Z4edk8+1lT67YwHpxs2
+  artifact: /.*\.exe/
+  draft: false
+  prerelease: true
+  on:
+    branch: master
+    appveyor_repo_tag: true
