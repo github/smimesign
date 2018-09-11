@@ -1,13 +1,17 @@
 os: osx
 language: go
 go:
+  - 1.10.x
   - 1.11.x
+  - 1.x
+  - master
 
 install: ''
 
 script:
   - GIT_VERSION=$(git describe --tags)
   - go build -o smimesign-$GIT_VERSION-macos .
+  - go test -v ./...
 
 deploy:
   name: v$GIT_VERSION
