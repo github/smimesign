@@ -45,8 +45,8 @@ artifacts:
   - path: smimesign-%GIT_VERSION%-%GOARCH%.exe
 
 deploy:
-  release: %GIT_VERSION%
-  description: v%GIT_VERSION%
+  release: $(GIT_VERSION)
+  description: v$(GIT_VERSION)
   provider: GitHub
   auth_token:
     secure: QmCiauB0OB33/8khQxyUTeT0Xm1nX/yfM9QaGMoB5xG83Z4edk8+1lT67YwHpxs2
