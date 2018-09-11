@@ -13,7 +13,7 @@ deploy:
   provider: releases
   skip_cleanup: true
   file: smimesign-$GIT_VERSION-macos
-  on:
-    tags: true
+  # on:
+  #   tags: true
   api_key:
     secure: ETRXbCU4rdP7SE9ULTN9VqfzTiInav5LXjfvmuUo3GJTu1TmKOgsvo87aSK+ns/AkGiWXNXrHhwgfnC73jdT7o562bE/r3TG1QaBtiEcf5jn8d9HI5XXbCH1b2+yl6lpkhilDa7MxGO8d2C51gzvUyL3Zbnfqxbrploe4w3ZwnHJRObS55OQu8Ooyf1HaeK4hvoazT0Ww5Hg2joLYnB2Z9U7ucOdmQkQ8cnRZiyoSoczTnnY7JF0o83Ei5atMuDLFYR1zzKrYjBUs0Awl8tSK6t+I/dQgVYAX2QJrfkoJrXbQu5ytASvo3VUYSJkZHnGKvWi+dUbSOV+DB+uqQYYE8Ix+fOENnicuUFJuLXIWUiGJ0X3zZ2+2AeN0uHxlO1S3bJp5x8Vt5Q2uYaFQagNvkn7s9HSIy9rf6UR80a9brUiyqCQlLJcu3x+b5/KyRVyvlKupG5yD9PCv9wO1gjQts2mbCGjRQQ62Ub+PpiGQY+59jz3AjOtqrWaNkjSpAVVHkuj8Rl4X6OblCQOXskMnLk8gl2OLO7uhLlEcOUJiCbrqHZ75V1LTUa/TOx+xhQIOjTFgvbUTPQHz7eSuNVD3GuJCHMDzzUCVFaXcgX+dsDMbsqugubBRelrmCv+TS4AurCU8M3zGsZPYZV3uKt9zKIriZQ31b2hltGimRpDFDE=
