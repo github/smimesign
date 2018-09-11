@@ -46,6 +46,7 @@ artifacts:
   - path: smimesign-%GIT_VERSION%-%GOARCH%.exe
 
 deploy:
+  tag: $(GIT_VERSION)
   release: v$(GIT_VERSION)
   description: v$(GIT_VERSION)
   provider: GitHub
