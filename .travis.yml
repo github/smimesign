@@ -1,6 +1,10 @@
+os: osx
 language: go
 go:
   - "1.10.x"
   - "1.11.x"
   - "1.x"
   - master
+
+# skip install since dependencies are vendored
+install: ""
