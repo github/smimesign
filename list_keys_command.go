@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -9,13 +10,14 @@ import (
 
 func commandListKeys() error {
 	for j, ident := range idents {
-		cert, err := ident.Certificate()
-		if err != nil {
-			return errors.Wrap(err, "failed to get identity certificate")
-		}
-
 		if j > 0 {
 			fmt.Println("————————————————————")
+		}
+
+		cert, err := ident.Certificate()
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "WARNING:", errors.Wrap(err, "failed to get identity certificate"))
+			continue
 		}
 
 		fmt.Println("       ID:", certHexFingerprint(cert))
