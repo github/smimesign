@@ -11,12 +11,17 @@ import (
 )
 
 var (
+	// This can be set at build time by running
+	// go build -ldflags "-X main.versionString=$(git describe --tags)"
+	versionString = "undefined"
+
 	// default timestamp authority URL. This can be set at build time by running
 	// go build -ldflags "-X main.defaultTSA=${https://whatever}"
 	defaultTSA = ""
 
 	// Action flags
 	helpFlag     = getopt.BoolLong("help", 'h', "print this help message")
+	versionFlag  = getopt.BoolLong("version", 'v', "print the version number")
 	signFlag     = getopt.BoolLong("sign", 's', "make a signature")
 	verifyFlag   = getopt.BoolLong("verify", 0, "verify a signature")
 	listKeysFlag = getopt.BoolLong("list-keys", 0, "show keys")
@@ -60,6 +65,11 @@ func runCommand() error {
 		return nil
 	}
 
+	if *versionFlag {
+		fmt.Println(versionString)
+		return nil
+	}
+
 	// Open certificate store
 	store, err := certstore.Open()
 	if err != nil {
@@ -77,7 +87,7 @@ func runCommand() error {
 	}
 
 	if *signFlag {
-		if *helpFlag || *verifyFlag || *listKeysFlag {
+		if *verifyFlag || *listKeysFlag {
 			return errors.New("specify --help, --sign, --verify, or --list-keys")
 		} else if len(*localUserOpt) == 0 {
 			return errors.New("specify a USER-ID to sign with")
@@ -87,7 +97,7 @@ func runCommand() error {
 	}
 
 	if *verifyFlag {
-		if *helpFlag || *signFlag || *listKeysFlag {
+		if *signFlag || *listKeysFlag {
 			return errors.New("specify --help, --sign, --verify, or --list-keys")
 		} else if len(*localUserOpt) > 0 {
 			return errors.New("local-user cannot be specified for verification")
@@ -101,7 +111,7 @@ func runCommand() error {
 	}
 
 	if *listKeysFlag {
-		if *helpFlag || *signFlag || *verifyFlag {
+		if *signFlag || *verifyFlag {
 			return errors.New("specify --help, --sign, --verify, or --list-keys")
 		} else if len(*localUserOpt) > 0 {
 			return errors.New("local-user cannot be specified for list-keys")
