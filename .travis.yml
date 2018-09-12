@@ -15,7 +15,7 @@ install: ''
 
 script:
   - GIT_VERSION=$(git describe --tags)
-  - go build -o smimesign .
+  - go build -o smimesign -ldflags "-X main.versionString=$GIT_VERSION" .
   - tar czf smimesign-$GIT_VERSION-macos.tgz smimesign
   - go test -v ./...
 

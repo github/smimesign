@@ -37,7 +37,7 @@ before_build:
 build_script:
   - git describe --tags > version
   - set /p GIT_VERSION= < version
-  - go build -o smimesign-%GOARCH%.exe -ldflags "-w -extldflags \"-static\" -extld=%EXTLD%" -i .
+  - go build -o smimesign-%GOARCH%.exe -ldflags "-X main.versionString=%GIT_VERSION% -w -extldflags \"-static\" -extld=%EXTLD%" -i .
   - 7z a smimesign-%GIT_VERSION%-windows-%GOARCH%.zip smimesign-%GOARCH%.exe
 
 test_script:
