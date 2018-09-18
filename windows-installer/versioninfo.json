@@ -1,0 +1,12 @@
+{
+    "FixedFileInfo": {
+        "FileVersion": {
+            "Build": 0
+        }
+    },
+    "StringFileInfo": {
+        "FileDescription": "smimesign",
+		"LegalCopyright": "GitHub, Inc.",
+		"ProductName": "smimesign"
+    }
+}

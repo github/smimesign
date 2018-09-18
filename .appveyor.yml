@@ -28,15 +28,20 @@ before_build:
   # Always build with CGO
   - set CGO_ENABLED=1
   # Go paths
-  - set PATH=%GOROOT%\bin;C:\%GOPATH%\bin;%PATH%
+  - set PATH=%GOROOT%\bin;%GOPATH%\bin;%GOPATH%\bin\windows_386;%PATH%
   # MSYS paths
   - set PATH=C:\%MSYS2_DIR%\%MSYSTEM%\bin;C:\%MSYS2_DIR%\usr\bin;%PATH%
   # Install build deps
   - bash -lc "for n in `seq 1 3`; do pacman --noconfirm -S mingw-w64-%MSYS2_ARCH%-libtool && break || sleep 15; done"
+  - go get github.com/josephspurrier/goversioninfo/cmd/goversioninfo
 
 build_script:
   - git describe --tags > version
   - set /p GIT_VERSION= < version
+  - FOR /F "delims=.- tokens=1" %%G IN (version) DO set VERSION_MAJOR=%%G
+  - FOR /F "delims=.- tokens=2" %%G IN (version) DO set VERSION_MINOR=%%G
+  - FOR /F "delims=.- tokens=3" %%G IN (version) DO set VERSION_PATCH=%%G
+  - go generate
   - go build -o smimesign-%GOARCH%.exe -ldflags "-X main.versionString=%GIT_VERSION% -w -extldflags \"-static\" -extld=%EXTLD%" -i .
   - 7z a smimesign-%GIT_VERSION%-windows-%GOARCH%.zip smimesign-%GOARCH%.exe
 
