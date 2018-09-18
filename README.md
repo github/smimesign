@@ -18,6 +18,22 @@ PKI is used in a variety of applications for encrypting or authenticating commun
 
 ## Installation
 
+### macOS
+
+You can install smimesign using [Homebrew](https://brew.sh/):
+
+```
+brew install smimesign
+```
+
+You can also download a prebuilt macOS binary [here](https://github.com/github/smimesign/releases/latest). Put the binary on your `$PATH`, so Git will be able to find it.
+
+### Windows
+
+You can download prebuilt Windows binaries [here](https://github.com/github/smimesign/releases/latest). Put the appropriate binary on your `%PATH%`, so Git will be able to find it.
+
+### Building from source
+
 - Make sure you have the [Go compiler](https://golang.org/dl/) installed.
 - You'll probably want to put `$GOPATH/bin` on your `$PATH`.
 - Run `go get github.com/github/smimesign`
