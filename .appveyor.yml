@@ -3,53 +3,50 @@ version: '{build}-{branch}'
 
 os: 'Visual Studio 2015'
 
-environment:
-  matrix:
-    - ARCH: x64
-      MSYS2_ARCH: x86_64
-      MSYS2_DIR: msys64
-      MSYSTEM: MINGW64
-      GOPATH: c:\gopath
-      GOROOT: c:\go
-      GOARCH: amd64
-      EXTLD: x86_64-w64-mingw32-gcc
-    - ARCH: x86
-      MSYS2_ARCH: i686
-      MSYS2_DIR: msys64
-      MSYSTEM: MINGW32
-      GOPATH: c:\gopath
-      GOROOT: c:\go
-      GOARCH: 386
-      EXTLD: i686-w64-mingw32-gcc
-
 clone_folder: C:\gopath\src\github.com\github\smimesign
 
-before_build:
+init:
   # Always build with CGO
   - set CGO_ENABLED=1
-  # Go paths
-  - set PATH=%GOROOT%\bin;%GOPATH%\bin;%GOPATH%\bin\windows_386;%PATH%
-  # MSYS paths
-  - set PATH=C:\%MSYS2_DIR%\%MSYSTEM%\bin;C:\%MSYS2_DIR%\usr\bin;%PATH%
-  # Install build deps
-  - bash -lc "for n in `seq 1 3`; do pacman --noconfirm -S mingw-w64-%MSYS2_ARCH%-libtool && break || sleep 15; done"
-  - go get github.com/josephspurrier/goversioninfo/cmd/goversioninfo
+  # Paths and Go environment
+  - set GOPATH=c:\gopath
+  - set GOROOT=c:\go
+  - set PATH=%GOROOT%\bin;%GOPATH%\bin;C:\msys64\usr\bin;%PATH%
+  - set PATH_WAS=%PATH%
 
-build_script:
+install:
+  - go get github.com/josephspurrier/goversioninfo/cmd/goversioninfo
+  - cinst InnoSetup -y
+
+before_build:
+  # Figure out version numbers
   - git describe --tags > version
   - set /p GIT_VERSION= < version
   - FOR /F "delims=.- tokens=1" %%G IN (version) DO set VERSION_MAJOR=%%G
   - FOR /F "delims=.- tokens=2" %%G IN (version) DO set VERSION_MINOR=%%G
   - FOR /F "delims=.- tokens=3" %%G IN (version) DO set VERSION_PATCH=%%G
+  # Generate resource.syso
   - go generate
-  - go build -o smimesign-%GOARCH%.exe -ldflags "-X main.versionString=%GIT_VERSION% -w -extldflags \"-static\" -extld=%EXTLD%" -i .
-  - 7z a smimesign-%GIT_VERSION%-windows-%GOARCH%.zip smimesign-%GOARCH%.exe
+
+build_script:
+  # Build x64 binary
+  - set GOARCH=amd64
+  - set PATH=C:\msys64\MINGW64\bin;%PATH_WAS%
+  - go build -o smimesign-amd64.exe -ldflags "-X main.versionString=%GIT_VERSION%" .
+  # Build x86 binary
+  - set GOARCH=386
+  - set PATH=C:\msys64\MINGW32\bin;%PATH_WAS%
+  - go build -o smimesign-386.exe -ldflags "-X main.versionString=%GIT_VERSION%" .
+
+after_build:
+  # Build installer
+  - iscc windows-installer/inno-setup-smimesign-installer.iss
 
 test_script:
   - go test -v ./...
 
 artifacts:
-  - path: smimesign-%GIT_VERSION%-windows-%GOARCH%.zip
+  - path: smimesign-windows-*.exe
 
 deploy:
   tag: $(GIT_VERSION)
@@ -58,7 +55,7 @@ deploy:
   provider: GitHub
   auth_token:
     secure: sEpJVeD+tAT8soMS72SeGXEv1UVg7gG1ySy8rEfAO1T5HCaxD3jE6YoGmYOvKcbx
-  artifact: /.*\.zip/
+  artifact: /smimesign-windows-.*\.exe/
   draft: false
   prerelease: false
   on:
