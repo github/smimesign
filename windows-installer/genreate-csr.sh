@@ -1,3 +1,4 @@
+#!/bin/bash
 set -e
 
 export KEY_PASSWORD=$(head -n100 /dev/urandom | shasum -a256 | awk '{print $1}')
