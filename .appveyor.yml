@@ -8,8 +8,6 @@ clone_folder: C:\gopath\src\github.com\github\smimesign
 environment:
   pfx_password:
     secure: WfQzoLeQ6dGF2NnDKhZX6ai/k5s+qWyWLdIZoAjPineepfZeXovgrB2bmOtZfO2d
-  myfoobar:
-    secure: 2tcrJeKGrWlBLQaphXDUPA==
 
 init:
   # Always build with CGO
@@ -47,11 +45,9 @@ build_script:
 after_build:
   # Build installer
   - iscc windows-installer/inno-setup-smimesign-installer.iss
-  # Sign installer
-  - dir
-  - dir windows-installer
-  - type %myfoobar%
-  - signtool.exe sign /tr http://timestamp.digicert.com /td sha256 /fd sha256 /p %pfx_password% /f windows-installer\codesign.pfx smimesign-windows-*.exe
+  # Sign installer — AppVeyor's "secure variables" aren't included in PR builds,
+  # so we skip this step if the PFX password is missing.
+  - if "%pfx_password%" NEQ "" (signtool.exe sign /tr http://timestamp.digicert.com /td sha256 /fd sha256 /p %pfx_password% /f windows-installer\codesign.pfx smimesign-windows-*.exe)
 
 test_script:
   - go test -v ./...
