@@ -48,7 +48,7 @@ after_build:
   # Sign installer
   - dir
   - dir windows-installer
-  - signtool.exe sign /p %pfx_password% /tr http://timestamp.digicert.com /td sha256 /fd sha256 /f windows-installer/codesign.pfx smimesign-windows-*.exe
+  - signtool.exe sign /tr http://timestamp.digicert.com /td sha256 /fd sha256 /p %pfx_password% /f C:\gopath\src\github.com\github\smimesign\windows-installer\codesign.pfx C:\gopath\src\github.com\github\smimesign\smimesign-windows-%GIT_VERSION%.exe
 
 test_script:
   - go test -v ./...
