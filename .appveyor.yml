@@ -8,6 +8,8 @@ clone_folder: C:\gopath\src\github.com\github\smimesign
 environment:
   pfx_password:
     secure: WfQzoLeQ6dGF2NnDKhZX6ai/k5s+qWyWLdIZoAjPineepfZeXovgrB2bmOtZfO2d
+  myfoobar:
+    secure: 2tcrJeKGrWlBLQaphXDUPA==
 
 init:
   # Always build with CGO
@@ -48,6 +50,7 @@ after_build:
   # Sign installer
   - dir
   - dir windows-installer
+  - echo %myfoobar%
   - signtool.exe sign /tr http://timestamp.digicert.com /td sha256 /fd sha256 /p %pfx_password% /f C:\gopath\src\github.com\github\smimesign\windows-installer\codesign.pfx C:\gopath\src\github.com\github\smimesign\smimesign-windows-%GIT_VERSION%.exe
 
 test_script:
