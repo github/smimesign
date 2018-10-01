@@ -1,4 +1,3 @@
-skip_branch_with_pr: true
 version: '{build}-{branch}'
 
 os: 'Visual Studio 2015'
@@ -43,6 +42,9 @@ build_script:
   - go build -o smimesign-386.exe -ldflags "-X main.versionString=%GIT_VERSION%" .
 
 after_build:
+  # Sign binaries
+  - if "%pfx_password%" NEQ "" (signtool.exe sign /tr http://timestamp.digicert.com /td sha256 /fd sha256 /p %pfx_password% /f windows-installer\codesign.pfx smimesign-amd64.exe)
+  - if "%pfx_password%" NEQ "" (signtool.exe sign /tr http://timestamp.digicert.com /td sha256 /fd sha256 /p %pfx_password% /f windows-installer\codesign.pfx smimesign-386.exe)
   # Build installer
   - iscc windows-installer/inno-setup-smimesign-installer.iss
   # Sign installer — AppVeyor's "secure variables" aren't included in PR builds,
