@@ -46,7 +46,7 @@ after_build:
   # Build installer
   - iscc windows-installer/inno-setup-smimesign-installer.iss
   # Sign installer
-  - signtool sign /f windows-installer/key.pem /p %pfx_password% smimesign-windows-*.exe
+  - signtool sign /f windows-installer/codesign.pfx /p %pfx_password% smimesign-windows-*.exe
 
 test_script:
   - go test -v ./...
