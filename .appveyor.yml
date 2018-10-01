@@ -15,7 +15,7 @@ init:
   # Paths and Go environment
   - set GOPATH=c:\gopath
   - set GOROOT=c:\go
-  - set PATH=%GOROOT%\bin;%GOPATH%\bin;C:\msys64\usr\bin;%PATH%
+  - set PATH=%GOROOT%\bin;%GOPATH%\bin;C:\msys64\usr\bin;C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\Bin;%PATH%
   - set PATH_WAS=%PATH%
 
 install:
@@ -46,7 +46,7 @@ after_build:
   # Build installer
   - iscc windows-installer/inno-setup-smimesign-installer.iss
   # Sign installer
-  - signtool sign /f windows-installer/codesign.pfx /p %pfx_password% smimesign-windows-*.exe
+  - signtool.exe sign /tr http://timestamp.digicert.com /td sha256 /fd sha256 /f windows-installer/codesign.pfx /p %pfx_password% smimesign-windows-*.exe
 
 test_script:
   - go test -v ./...
