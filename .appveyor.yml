@@ -46,7 +46,9 @@ after_build:
   # Build installer
   - iscc windows-installer/inno-setup-smimesign-installer.iss
   # Sign installer
-  - signtool.exe sign /tr http://timestamp.digicert.com /td sha256 /fd sha256 /f windows-installer/codesign.pfx /p %pfx_password% smimesign-windows-*.exe
+  - dir
+  - dir windows-installer
+  - signtool.exe sign /p %pfx_password% /tr http://timestamp.digicert.com /td sha256 /fd sha256 /f windows-installer/codesign.pfx smimesign-windows-*.exe
 
 test_script:
   - go test -v ./...
