@@ -46,6 +46,13 @@ after_build:
   # Sign binaries
   - if "%pfx_password%" NEQ "" (signtool.exe sign /tr http://timestamp.digicert.com /td sha256 /fd sha256 /p %pfx_password% /f windows-installer\codesign.pfx smimesign-amd64.exe)
   - if "%pfx_password%" NEQ "" (signtool.exe sign /tr http://timestamp.digicert.com /td sha256 /fd sha256 /p %pfx_password% /f windows-installer\codesign.pfx smimesign-386.exe)
+  # Build zip archives
+  - copy smimesign-amd64.exe smimesign.exe
+  - 7z a smimesign-windows-amd64-%GIT_VERSION%.zip smimesign.exe
+  - del smimesign.exe
+  - copy smimesign-386.exe smimesign.exe
+  - 7z a smimesign-windows-386-%GIT_VERSION%.zip smimesign.exe
+  - del smimesign.exe
   # Build installer
   - iscc windows-installer/inno-setup-smimesign-installer.iss
   # Sign installer — AppVeyor's "secure variables" aren't included in PR builds,
@@ -57,6 +64,7 @@ test_script:
 
 artifacts:
   - path: smimesign-windows-*.exe
+  - path: smimesign-windows-*.zip
 
 deploy:
   tag: $(GIT_VERSION)
@@ -65,7 +73,7 @@ deploy:
   provider: GitHub
   auth_token:
     secure: sEpJVeD+tAT8soMS72SeGXEv1UVg7gG1ySy8rEfAO1T5HCaxD3jE6YoGmYOvKcbx
-  artifact: /smimesign-windows-.*\.exe/
+  artifact: /smimesign-windows-.*\.(exe|zip)/
   draft: false
   prerelease: false
   on:
