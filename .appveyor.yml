@@ -5,13 +5,17 @@ os: 'Visual Studio 2015'
 
 clone_folder: C:\gopath\src\github.com\github\smimesign
 
+environment:
+  pfx_password:
+    secure: WfQzoLeQ6dGF2NnDKhZX6ai/k5s+qWyWLdIZoAjPineepfZeXovgrB2bmOtZfO2d
+
 init:
   # Always build with CGO
   - set CGO_ENABLED=1
   # Paths and Go environment
   - set GOPATH=c:\gopath
   - set GOROOT=c:\go
-  - set PATH=%GOROOT%\bin;%GOPATH%\bin;C:\msys64\usr\bin;%PATH%
+  - set PATH=%GOROOT%\bin;%GOPATH%\bin;C:\msys64\usr\bin;C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\Bin;%PATH%
   - set PATH_WAS=%PATH%
 
 install:
@@ -39,8 +43,14 @@ build_script:
   - go build -o smimesign-386.exe -ldflags "-X main.versionString=%GIT_VERSION%" .
 
 after_build:
+  # Sign binaries
+  - if "%pfx_password%" NEQ "" (signtool.exe sign /tr http://timestamp.digicert.com /td sha256 /fd sha256 /p %pfx_password% /f windows-installer\codesign.pfx smimesign-amd64.exe)
+  - if "%pfx_password%" NEQ "" (signtool.exe sign /tr http://timestamp.digicert.com /td sha256 /fd sha256 /p %pfx_password% /f windows-installer\codesign.pfx smimesign-386.exe)
   # Build installer
   - iscc windows-installer/inno-setup-smimesign-installer.iss
+  # Sign installer — AppVeyor's "secure variables" aren't included in PR builds,
+  # so we skip this step if the PFX password is missing.
+  - if "%pfx_password%" NEQ "" (signtool.exe sign /tr http://timestamp.digicert.com /td sha256 /fd sha256 /p %pfx_password% /f windows-installer\codesign.pfx smimesign-windows-*.exe)
 
 test_script:
   - go test -v ./...
