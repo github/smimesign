@@ -5,7 +5,8 @@ build: off
 
 environment:
   matrix:
-    - ARCH: x64
+    - # Default Go, x64
+      ARCH: x64
       MSYS2_ARCH: x86_64
       MSYS2_DIR: msys64
       MSYSTEM: MINGW64
@@ -13,14 +14,51 @@ environment:
       GOROOT: c:\go
       GOARCH: amd64
       EXTLD: x86_64-w64-mingw32-gcc
-    - ARCH: x86
+    - # Default Go, x86
+      ARCH: x86
       MSYS2_ARCH: i686
       MSYS2_DIR: msys64
       MSYSTEM: MINGW32
       GOPATH: c:\gopath
-      GOROOT: c:\go
+      GOROOT: c:\go-x86
       GOARCH: 386
       EXTLD: i686-w64-mingw32-gcc
+    - # Go 1.11, x64
+      ARCH: x64
+      MSYS2_ARCH: x86_64
+      MSYS2_DIR: msys64
+      MSYSTEM: MINGW64
+      GOPATH: c:\gopath
+      GOROOT: c:\go111
+      GOARCH: amd64
+      EXTLD: x86_64-w64-mingw32-gcc
+    - # Go 1.10, x64
+      ARCH: x64
+      MSYS2_ARCH: x86_64
+      MSYS2_DIR: msys64
+      MSYSTEM: MINGW64
+      GOPATH: c:\gopath
+      GOROOT: c:\go110
+      GOARCH: amd64
+      EXTLD: x86_64-w64-mingw32-gcc
+    - # Go 1.9, x64
+      ARCH: x64
+      MSYS2_ARCH: x86_64
+      MSYS2_DIR: msys64
+      MSYSTEM: MINGW64
+      GOPATH: c:\gopath
+      GOROOT: c:\go19
+      GOARCH: amd64
+      EXTLD: x86_64-w64-mingw32-gcc
+    - # Go 1.9, x64
+      ARCH: x64
+      MSYS2_ARCH: x86_64
+      MSYS2_DIR: msys64
+      MSYSTEM: MINGW64
+      GOPATH: c:\gopath
+      GOROOT: c:\go18
+      GOARCH: amd64
+      EXTLD: x86_64-w64-mingw32-gcc
 
 clone_folder: C:\gopath\src\github.com\mastahyeti\certstore
 

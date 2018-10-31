@@ -16,8 +16,8 @@
 [[projects]]
   name = "github.com/mastahyeti/certstore"
   packages = ["."]
-  revision = "f7f56f737ba5928d21eaa11384735ac24ea6362f"
-  version = "0.0.2"
+  revision = "6f2394a25c204d281922fe1407d4385a7b979963"
+  version = "0.0.3"
 
 [[projects]]
   name = "github.com/mastahyeti/cms"
@@ -78,6 +78,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "0e737b14aca3a608ab653f1bda32b56695224d02581436a8b5e976284620fb27"
+  inputs-digest = "beee101522fbba0ef4524626104699e2a2252d63076c4aa575c1b602a93adda6"
   solver-name = "gps-cdcl"
   solver-version = 1
