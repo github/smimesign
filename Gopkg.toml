@@ -27,7 +27,7 @@
 
 [[constraint]]
   name = "github.com/mastahyeti/certstore"
-  version = "0.0.3"
+  branch = "windows-errors"
 
 [[constraint]]
   name = "github.com/mastahyeti/cms"
