@@ -18,12 +18,12 @@
   version = "v1.1.1"
 
 [[projects]]
-  branch = "windows-errors"
   digest = "1:023fbbe144662cdcd931f9c47e29e5a0f89d01d340600c270aaaf887fe667edc"
   name = "github.com/mastahyeti/certstore"
   packages = ["."]
   pruneopts = ""
-  revision = "771bec17e686bcf86b5d1606c81d07c930b5b02d"
+  revision = "c84a6bb0b6baafd35a9316317b4621c9d04c6813"
+  version = "0.0.4"
 
 [[projects]]
   digest = "1:26ab843f72f1e7b54b7ad984510a956926e623f880a26faca9375d2199d928d2"
