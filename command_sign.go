@@ -111,12 +111,7 @@ func findUserIdentity() (certstore.Identity, error) {
 	}
 
 	for _, ident := range idents {
-		cert, err := ident.Certificate()
-		if err != nil {
-			return nil, errors.Wrap(err, "failed to get identity certificate")
-		}
-
-		if certHasEmail(cert, email) || certHasFingerprint(cert, fpr) {
+		if cert, err := ident.Certificate(); err == nil && (certHasEmail(cert, email) || certHasFingerprint(cert, fpr)) {
 			return ident, nil
 		}
 	}
