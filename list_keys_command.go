@@ -11,7 +11,7 @@ import (
 func commandListKeys() error {
 	for j, ident := range idents {
 		if j > 0 {
-			fmt.Println("————————————————————")
+			fmt.Print("\n")
 		}
 
 		cert, err := ident.Certificate()
