@@ -110,17 +110,28 @@ const (
 )
 
 var (
-	setupStatus sync.Once
-	statusFile  *os.File
+	_setupStatus sync.Once
+	statusFile   *os.File
 )
 
-func (s status) emitf(format string, args ...interface{}) {
-	setupStatus.Do(func() {
+func setupStatus() {
+	_setupStatus.Do(func() {
 		if *statusFdOpt > 0 {
-			// TODO: debugging output if this fails
-			statusFile = os.NewFile(uintptr(*statusFdOpt), "status")
+			switch *statusFdOpt {
+			case 1:
+				statusFile = os.Stdout
+			case 2:
+				statusFile = os.Stderr
+			default:
+				// TODO: debugging output if this fails
+				statusFile = os.NewFile(uintptr(*statusFdOpt), "status")
+			}
 		}
 	})
+}
+
+func (s status) emitf(format string, args ...interface{}) {
+	setupStatus()
 
 	if statusFile == nil {
 		return
@@ -133,12 +144,7 @@ func (s status) emitf(format string, args ...interface{}) {
 }
 
 func (s status) emit() {
-	setupStatus.Do(func() {
-		if *statusFdOpt > 0 {
-			// TODO: debugging output if this fails
-			statusFile = os.NewFile(uintptr(*statusFdOpt), "status")
-		}
-	})
+	setupStatus()
 
 	if statusFile == nil {
 		return
