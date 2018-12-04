@@ -116,16 +116,25 @@ var (
 
 func setupStatus() {
 	_setupStatus.Do(func() {
-		if *statusFdOpt > 0 {
-			switch *statusFdOpt {
-			case 1:
-				statusFile = os.Stdout
-			case 2:
-				statusFile = os.Stderr
-			default:
-				// TODO: debugging output if this fails
-				statusFile = os.NewFile(uintptr(*statusFdOpt), "status")
-			}
+		if *statusFdOpt <= 0 {
+			return
+		}
+
+		const (
+			unixStdout = 1
+			unixStderr = 2
+		)
+
+		// Even though Windows uses different numbers, we always equate 1/2 with
+		// stdout/stderr because Git always passes `--status-fd=1`.
+		switch *statusFdOpt {
+		case unixStdout:
+			statusFile = os.Stdout
+		case unixStderr:
+			statusFile = os.Stderr
+		default:
+			// TODO: debugging output if this fails
+			statusFile = os.NewFile(uintptr(*statusFdOpt), "status")
 		}
 	})
 }
