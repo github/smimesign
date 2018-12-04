@@ -31,7 +31,7 @@
 
 [[constraint]]
   name = "github.com/mastahyeti/cms"
-  version = "0.0.2"
+  version = "0.0.4"
 
 [[constraint]]
   branch = "master"

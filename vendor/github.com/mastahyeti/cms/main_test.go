@@ -98,7 +98,7 @@ func (tt *testTSA) Do(req timestamp.Request) (timestamp.Response, error) {
 		panic(err)
 	}
 
-	eci, err := protocol.NewEncapsulatedContentInfo(oid.TSTInfo, eciDER)
+	eci, err := protocol.NewEncapsulatedContentInfo(oid.ContentTypeTSTInfo, eciDER)
 	if err != nil {
 		panic(err)
 	}

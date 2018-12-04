@@ -303,7 +303,7 @@ type Info struct {
 func ParseInfo(eci protocol.EncapsulatedContentInfo) (Info, error) {
 	i := Info{}
 
-	if !eci.EContentType.Equal(oid.TSTInfo) {
+	if !eci.EContentType.Equal(oid.ContentTypeTSTInfo) {
 		return i, protocol.ErrWrongType
 	}
 
@@ -361,7 +361,7 @@ type MessageImprint struct {
 // NewMessageImprint creates a new MessageImprint, digesting all bytes from the
 // provided reader using the specified hash.
 func NewMessageImprint(hash crypto.Hash, r io.Reader) (MessageImprint, error) {
-	digestAlgorithm := oid.HashToDigestAlgorithm[hash]
+	digestAlgorithm := oid.CryptoHashToDigestAlgorithm[hash]
 	if len(digestAlgorithm) == 0 {
 		return MessageImprint{}, protocol.ErrUnsupported
 	}
@@ -384,7 +384,7 @@ func NewMessageImprint(hash crypto.Hash, r io.Reader) (MessageImprint, error) {
 // 0 is returned for unrecognized algorithms.
 func (mi MessageImprint) Hash() (crypto.Hash, error) {
 	algo := mi.HashAlgorithm.Algorithm.String()
-	hash := oid.DigestAlgorithmToHash[algo]
+	hash := oid.DigestAlgorithmToCryptoHash[algo]
 	if hash == 0 || !hash.Available() {
 		return 0, protocol.ErrUnsupported
 	}

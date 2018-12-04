@@ -79,7 +79,7 @@ func ParseContentInfo(ber []byte) (ci ContentInfo, err error) {
 
 // SignedDataContent gets the content assuming contentType is signedData.
 func (ci ContentInfo) SignedDataContent() (*SignedData, error) {
-	if !ci.ContentType.Equal(oid.SignedData) {
+	if !ci.ContentType.Equal(oid.ContentTypeSignedData) {
 		return nil, ErrWrongType
 	}
 
@@ -106,7 +106,7 @@ type EncapsulatedContentInfo struct {
 // NewDataEncapsulatedContentInfo creates a new EncapsulatedContentInfo of type
 // id-data.
 func NewDataEncapsulatedContentInfo(data []byte) (EncapsulatedContentInfo, error) {
-	return NewEncapsulatedContentInfo(oid.Data, data)
+	return NewEncapsulatedContentInfo(oid.ContentTypeData, data)
 }
 
 // NewEncapsulatedContentInfo creates a new EncapsulatedContentInfo.
@@ -186,7 +186,7 @@ func (eci EncapsulatedContentInfo) EContentValue() ([]byte, error) {
 
 // IsTypeData checks if the EContentType is id-data.
 func (eci EncapsulatedContentInfo) IsTypeData() bool {
-	return eci.EContentType.Equal(oid.Data)
+	return eci.EContentType.Equal(oid.ContentTypeData)
 }
 
 // DataEContent gets the EContent assuming EContentType is data.
@@ -312,6 +312,17 @@ func (attrs Attributes) GetValues(oid asn1.ObjectIdentifier) ([]AnySet, error) {
 	return vals, nil
 }
 
+// HasAttribute checks if an attribute is present.
+func (attrs Attributes) HasAttribute(oid asn1.ObjectIdentifier) bool {
+	for _, attr := range attrs {
+		if attr.Type.Equal(oid) {
+			return true
+		}
+	}
+
+	return false
+}
+
 // IssuerAndSerialNumber ::= SEQUENCE {
 // 	issuer Name,
 // 	serialNumber CertificateSerialNumber }
@@ -403,7 +414,7 @@ func (si SignerInfo) FindCertificate(certs []*x509.Certificate) (*x509.Certifica
 
 		for _, cert := range certs {
 			for _, ext := range cert.Extensions {
-				if oid.SubjectKeyIdentifier.Equal(ext.Id) {
+				if oid.ExtensionSubjectKeyIdentifier.Equal(ext.Id) {
 					if bytes.Equal(ski, ext.Value) {
 						return cert, nil
 					}
@@ -445,7 +456,7 @@ func (si SignerInfo) subjectKeyIdentifierSID() ([]byte, error) {
 // 0 is returned for unrecognized algorithms.
 func (si SignerInfo) Hash() (crypto.Hash, error) {
 	algo := si.DigestAlgorithm.Algorithm.String()
-	hash := oid.DigestAlgorithmToHash[algo]
+	hash := oid.DigestAlgorithmToCryptoHash[algo]
 	if hash == 0 || !hash.Available() {
 		return 0, ErrUnsupported
 	}
@@ -461,7 +472,11 @@ func (si SignerInfo) X509SignatureAlgorithm() x509.SignatureAlgorithm {
 		digestOID = si.DigestAlgorithm.Algorithm.String()
 	)
 
-	return oid.SignatureAlgorithms[sigOID][digestOID]
+	if sa := oid.SignatureAlgorithmToX509SignatureAlgorithm[sigOID]; sa != x509.UnknownSignatureAlgorithm {
+		return sa
+	}
+
+	return oid.PublicKeyAndDigestAlgorithmToX509SignatureAlgorithm[sigOID][digestOID]
 }
 
 // GetContentTypeAttribute gets the signed ContentType attribute from the
@@ -501,6 +516,9 @@ func (si SignerInfo) GetMessageDigestAttribute() ([]byte, error) {
 func (si SignerInfo) GetSigningTimeAttribute() (time.Time, error) {
 	var t time.Time
 
+	if !si.SignedAttrs.HasAttribute(oid.AttributeSigningTime) {
+		return t, nil
+	}
 	rv, err := si.SignedAttrs.GetOnlyAttributeValueBytes(oid.AttributeSigningTime)
 	if err != nil {
 		return t, err
@@ -617,7 +635,7 @@ func (sd *SignedData) AddSignerInfo(chain []*x509.Certificate, signer crypto.Sig
 	}
 
 	digestAlgorithm := digestAlgorithmForPublicKey(pub)
-	signatureAlgorithm, ok := oid.PublicKeyAlgorithmToSignatureAlgorithm[cert.PublicKeyAlgorithm]
+	signatureAlgorithm, ok := oid.X509PublicKeyAlgorithmToPKIXAlgorithmIdentifier[cert.PublicKeyAlgorithm]
 	if !ok {
 		return errors.New("unsupported certificate public key algorithm")
 	}
@@ -652,6 +670,10 @@ func (sd *SignedData) AddSignerInfo(chain []*x509.Certificate, signer crypto.Sig
 	}
 
 	// Build our SignedAttributes
+	stAttr, err := NewAttribute(oid.AttributeSigningTime, time.Now())
+	if err != nil {
+		return err
+	}
 	mdAttr, err := NewAttribute(oid.AttributeMessageDigest, md.Sum(nil))
 	if err != nil {
 		return err
@@ -660,7 +682,8 @@ func (sd *SignedData) AddSignerInfo(chain []*x509.Certificate, signer crypto.Sig
 	if err != nil {
 		return err
 	}
-	si.SignedAttrs = append(si.SignedAttrs, mdAttr, ctAttr)
+
+	si.SignedAttrs = append(si.SignedAttrs, stAttr, mdAttr, ctAttr)
 
 	// Signature is over the marshaled signed attributes
 	sm, err := si.SignedAttrs.MarshaledForSigning()
@@ -770,7 +793,7 @@ func (sd *SignedData) ContentInfo() (ContentInfo, error) {
 	}
 
 	return ContentInfo{
-		ContentType: oid.SignedData,
+		ContentType: oid.ContentTypeSignedData,
 		Content: asn1.RawValue{
 			Class:      asn1.ClassContextSpecific,
 			Tag:        0,
