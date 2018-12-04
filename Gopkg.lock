@@ -26,7 +26,7 @@
   version = "0.0.4"
 
 [[projects]]
-  digest = "1:cc5e11517a475b8d22681cb653bf5551e595d112cd82bab02f8f0f35a8cd2b2d"
+  digest = "1:cd679ecc274bc8e7f7ab4ec77e1d0fd48d9f9f470fbad178925471d386357165"
   name = "github.com/mastahyeti/cms"
   packages = [
     ".",
@@ -35,8 +35,8 @@
     "timestamp",
   ]
   pruneopts = ""
-  revision = "f987d536de423abc2f6710e58cbe4bcb3cff47da"
-  version = "0.0.4"
+  revision = "ec6fafdd655a614d13a9336ea483e37d51a11752"
+  version = "0.0.5"
 
 [[projects]]
   branch = "master"

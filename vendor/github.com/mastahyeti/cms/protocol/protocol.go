@@ -670,7 +670,7 @@ func (sd *SignedData) AddSignerInfo(chain []*x509.Certificate, signer crypto.Sig
 	}
 
 	// Build our SignedAttributes
-	stAttr, err := NewAttribute(oid.AttributeSigningTime, time.Now())
+	stAttr, err := NewAttribute(oid.AttributeSigningTime, time.Now().UTC())
 	if err != nil {
 		return err
 	}
