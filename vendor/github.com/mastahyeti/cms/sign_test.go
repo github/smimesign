@@ -3,6 +3,7 @@ package cms
 import (
 	"crypto/x509"
 	"testing"
+	"time"
 )
 
 var (
@@ -46,6 +47,12 @@ func TestSign(t *testing.T) {
 			t.Fatal("missing cert in sd")
 		}
 	}
+
+	// check that we're including signing time attribute
+	st, err := sd2.psd.SignerInfos[0].GetSigningTimeAttribute()
+	if st.After(time.Now().Add(time.Second)) || st.Before(time.Now().Add(-time.Second)) {
+		t.Fatal("expected SigningTime to be now. Difference was", st.Sub(time.Now()))
+	}
 }
 
 func TestSignDetached(t *testing.T) {
@@ -83,6 +90,12 @@ func TestSignDetached(t *testing.T) {
 		if !found {
 			t.Fatal("missing cert in sd")
 		}
+	}
+
+	// check that we're including signing time attribute
+	st, err := sd2.psd.SignerInfos[0].GetSigningTimeAttribute()
+	if st.After(time.Now().Add(time.Second)) || st.Before(time.Now().Add(-time.Second)) {
+		t.Fatal("expected SigningTime to be now. Difference was", st.Sub(time.Now()))
 	}
 }
 

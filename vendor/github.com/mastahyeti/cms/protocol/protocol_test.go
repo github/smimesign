@@ -23,7 +23,7 @@ func TestSignerInfo(t *testing.T) {
 
 	msg := []byte("hello, world!")
 
-	eci, err := NewEncapsulatedContentInfo(oid.Data, msg)
+	eci, err := NewEncapsulatedContentInfo(oid.ContentTypeData, msg)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -98,7 +98,7 @@ func TestEncapsulatedContentInfo(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	newECI, err := NewEncapsulatedContentInfo(oid.Data, oldData)
+	newECI, err := NewEncapsulatedContentInfo(oid.ContentTypeData, oldData)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -211,6 +211,48 @@ func TestContentTypeAttribute(t *testing.T) {
 	}
 }
 
+func TestSigningTimeAttribute(t *testing.T) {
+	ci, _ := ParseContentInfo(fixtureSignatureOpenSSLAttached)
+	sd, _ := ci.SignedDataContent()
+	si := sd.SignerInfos[0]
+
+	oldAttrVal, err := si.GetSigningTimeAttribute()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var oldAttr Attribute
+	for _, attr := range si.SignedAttrs {
+		if attr.Type.Equal(oid.AttributeSigningTime) {
+			oldAttr = attr
+			break
+		}
+	}
+
+	newAttr, err := NewAttribute(oid.AttributeSigningTime, oldAttrVal)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !bytes.Equal(oldAttr.RawValue.Bytes, newAttr.RawValue.Bytes) {
+		t.Fatal("raw value mismatch")
+	}
+
+	oldDER, err := asn1.Marshal(oldAttr)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	newDER, err := asn1.Marshal(newAttr)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !bytes.Equal(oldDER, newDER) {
+		t.Fatal("der mismatch")
+	}
+}
+
 func TestIssuerAndSerialNumber(t *testing.T) {
 	ci, _ := ParseContentInfo(fixtureSignatureOpenSSLAttached)
 	sd, _ := ci.SignedDataContent()
@@ -279,8 +321,8 @@ func testParseContentInfo(t *testing.T, ber []byte) {
 		t.Fatal("expected id-data econtent")
 	}
 
-	if !sd.EncapContentInfo.EContentType.Equal(oid.Data) {
-		t.Fatalf("expected %s content, got %s", oid.Data.String(), sd.EncapContentInfo.EContentType.String())
+	if !sd.EncapContentInfo.EContentType.Equal(oid.ContentTypeData) {
+		t.Fatalf("expected %s content, got %s", oid.ContentTypeData.String(), sd.EncapContentInfo.EContentType.String())
 	}
 
 	data, err := sd.EncapContentInfo.DataEContent()

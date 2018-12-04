@@ -59,6 +59,11 @@ func (sd *SignedData) verify(econtent []byte, opts x509.VerifyOptions) ([][][]*x
 		opts.Intermediates.AddCert(cert)
 	}
 
+	// Use provided verification options for timestamp verification also, but
+	// explicitly ask for key-usage=timestamping.
+	tsOpts := opts
+	tsOpts.KeyUsages = []x509.ExtKeyUsage{x509.ExtKeyUsageTimeStamping}
+
 	chains := make([][][]*x509.Certificate, 0, len(sd.psd.SignerInfos))
 
 	for _, si := range sd.psd.SignerInfos {
@@ -133,13 +138,14 @@ func (sd *SignedData) verify(econtent []byte, opts x509.VerifyOptions) ([][][]*x
 		// timestamp. If there's no timestamp we use the current time when checking
 		// the cert validity window. This isn't perfect because the signature may
 		// have been created before the cert's not-before date, but this is the best
-		// we can do.
+		// we can do. We update a copy of opts because we are verifying multiple
+		// signatures in a loop and only want the timestamp to affect this one.
 		optsCopy := opts
 
 		if hasTS, err := hasTimestamp(si); err != nil {
 			return nil, err
 		} else if hasTS {
-			tsti, err := getTimestamp(si, opts)
+			tsti, err := getTimestamp(si, tsOpts)
 			if err != nil {
 				return nil, err
 			}

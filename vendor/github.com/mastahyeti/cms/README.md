@@ -11,7 +11,7 @@ msg := []byte("some data")
 cert, _ := x509.ParseCertificate(someCertificateData)
 key, _ := x509.ParseECPrivateKey(somePrivateKeyData)
 
-der, _ := cms.Sign(msg, cert, key)
+der, _ := cms.Sign(msg, []*x509.Certificate{cert}, key)
 
 ////
 /// At another time, in another place...
