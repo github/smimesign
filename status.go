@@ -110,17 +110,37 @@ const (
 )
 
 var (
-	setupStatus sync.Once
-	statusFile  *os.File
+	_setupStatus sync.Once
+	statusFile   *os.File
 )
 
-func (s status) emitf(format string, args ...interface{}) {
-	setupStatus.Do(func() {
-		if *statusFdOpt > 0 {
+func setupStatus() {
+	_setupStatus.Do(func() {
+		if *statusFdOpt <= 0 {
+			return
+		}
+
+		const (
+			unixStdout = 1
+			unixStderr = 2
+		)
+
+		// Even though Windows uses different numbers, we always equate 1/2 with
+		// stdout/stderr because Git always passes `--status-fd=1`.
+		switch *statusFdOpt {
+		case unixStdout:
+			statusFile = os.Stdout
+		case unixStderr:
+			statusFile = os.Stderr
+		default:
 			// TODO: debugging output if this fails
 			statusFile = os.NewFile(uintptr(*statusFdOpt), "status")
 		}
 	})
+}
+
+func (s status) emitf(format string, args ...interface{}) {
+	setupStatus()
 
 	if statusFile == nil {
 		return
@@ -133,12 +153,7 @@ func (s status) emitf(format string, args ...interface{}) {
 }
 
 func (s status) emit() {
-	setupStatus.Do(func() {
-		if *statusFdOpt > 0 {
-			// TODO: debugging output if this fails
-			statusFile = os.NewFile(uintptr(*statusFdOpt), "status")
-		}
-	})
+	setupStatus()
 
 	if statusFile == nil {
 		return
