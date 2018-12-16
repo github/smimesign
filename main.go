@@ -7,7 +7,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/mastahyeti/certstore"
+	"github.com/mk229797/certstore"
 	"github.com/pborman/getopt/v2"
 	"github.com/pkg/errors"
 )

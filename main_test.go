@@ -8,7 +8,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/mastahyeti/certstore"
+	"github.com/mk229797/certstore"
 	"github.com/mastahyeti/fakeca"
 	"github.com/pborman/getopt/v2"
 )

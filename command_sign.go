@@ -8,7 +8,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/mastahyeti/certstore"
+	"github.com/mk229797/certstore"
 	"github.com/mastahyeti/cms"
 	"github.com/pkg/errors"
 )
