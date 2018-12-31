@@ -28,8 +28,8 @@
 [[projects]]
   name = "github.com/mk229797/certstore"
   packages = ["."]
-  revision = "c84a6bb0b6baafd35a9316317b4621c9d04c6813"
-  version = "0.0.4"
+  revision = "275f82c3478e513f179c112f9aa67782044e1c2a"
+  version = "0.0.6"
 
 [[projects]]
   branch = "master"
@@ -64,6 +64,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "3e6adbdc7addf8ee5e547193a06321bfb5c58c6161f0cea9f80ae67b1cafc8d0"
+  inputs-digest = "63561363957a2df722b0b8191b73009612a509817dedf8eb41d5568eb6acf67f"
   solver-name = "gps-cdcl"
   solver-version = 1

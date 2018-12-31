@@ -26,8 +26,8 @@
   version = "2018.1.18"
 
 [[constraint]]
-  name = "github.com/mastahyeti/certstore"
-  version = "0.0.4"
+  name = "github.com/mk229797/certstore"
+  version = "0.0.6"
 
 [[constraint]]
   name = "github.com/mastahyeti/cms"
