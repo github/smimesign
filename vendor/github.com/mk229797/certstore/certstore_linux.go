@@ -86,7 +86,6 @@ func (nssStore) Identities() ([]Identity, error) {
 	list = certs
 	for node = CertListHead(list); ! CertListEnd(node, list); node = CertListNext(node) {
 		identities = append(identities, newNssIdentity(node))
-		showCert(C.GoString(node.cert.subjectName))
 	}
 	return identities, nil
 }
@@ -131,7 +130,6 @@ func (i *nssIdentity) CertificateChain() ([]*x509.Certificate, error) {
 	var certificates = make([]*x509.Certificate, 0)
 	for node = CertListHead(list); ! CertListEnd(node, list); node = CertListNext(node) {
 		identities = append(identities, newNssIdentity(node))
-		showCert(C.GoString(node.cert.subjectName))
 	}
 	certificates = append(certificates, cert)
 	found := true
@@ -187,6 +185,22 @@ func (i *nssPrivateKey) Sign(rand io.Reader, digest []byte, opts crypto.SignerOp
 	if key == nil {
 		return nil, errors.New("cannot find private key")
 	}
+	if key.keyType == C.rsaKey {
+		var pkcs1Prefix = map[crypto.Hash][]byte{
+			crypto.SHA1:   {0x30, 0x21, 0x30, 0x09, 0x06, 0x05, 0x2b, 0x0e, 0x03, 0x02, 0x1a, 0x05, 0x00, 0x04, 0x14},
+			crypto.SHA256: {0x30, 0x31, 0x30, 0x0d, 0x06, 0x09, 0x60, 0x86, 0x48, 0x01, 0x65, 0x03, 0x04, 0x02, 0x01, 0x05, 0x00, 0x04, 0x20},
+			crypto.SHA384: {0x30, 0x41, 0x30, 0x0d, 0x06, 0x09, 0x60, 0x86, 0x48, 0x01, 0x65, 0x03, 0x04, 0x02, 0x02, 0x05, 0x00, 0x04, 0x30},
+			crypto.SHA512: {0x30, 0x51, 0x30, 0x0d, 0x06, 0x09, 0x60, 0x86, 0x48, 0x01, 0x65, 0x03, 0x04, 0x02, 0x03, 0x05, 0x00, 0x04, 0x40},
+		}
+		oid := pkcs1Prefix[hash]
+		if oid == nil {
+			return nil, ErrUnsupportedHash
+		}
+		T := make([]byte, len(oid)+len(digest))
+		copy(T[0:len(oid)], oid)
+		copy(T[len(oid):], digest)
+		digest = T
+	}
 	sd := C.SECITEM_AllocItem(nil, nil, C.uint(C.PK11_SignatureLen(key)))
 	hashed := C.SECITEM_AllocItem(nil, nil, C.uint(len(digest)))
 	if hashed == nil {
@@ -197,6 +211,7 @@ func (i *nssPrivateKey) Sign(rand io.Reader, digest []byte, opts crypto.SignerOp
 	switch key.keyType {
 	case C.rsaKey:
 		switch hash {
+		/*
 		case crypto.SHA1:
 			mechanism = C.CKM_SHA1_RSA_PKCS
 		case crypto.SHA256:
@@ -205,13 +220,16 @@ func (i *nssPrivateKey) Sign(rand io.Reader, digest []byte, opts crypto.SignerOp
 			mechanism = C.CKM_SHA384_RSA_PKCS
 		case crypto.SHA512:
 			mechanism = C.CKM_SHA512_RSA_PKCS
+		*/
 		default:
 			mechanism = C.CKM_RSA_PKCS
 		}
 	case C.ecKey:
 		switch hash {
+		/*
 		case crypto.SHA1:
 			mechanism = C.CKM_ECDSA_SHA1
+		*/
 		default:
 			mechanism = C.CKM_ECDSA
 		}
@@ -322,10 +340,6 @@ func openStore() (Store, error) {
 	C.SEC_PKCS12EnableCipher(C.PKCS12_AES_CBC_256, 1)
 	C.SEC_PKCS12SetPreferredCipher(C.PKCS12_DES_EDE3_168, 1)
 	return nssStore(0), nil
-}
-
-func showCert(s string) {
-	//fmt.Printf("Cetificate: %s\n", s)
 }
 
 func CertListHead(l *C.CERTCertList) *C.CERTCertListNode {
