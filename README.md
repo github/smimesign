@@ -18,6 +18,10 @@ PKI is used in a variety of applications for encrypting or authenticating commun
 
 ## Installation
 
+### Linux
+
+- Run `go get github.com/mk229797/smimesign`
+
 ### macOS
 
 You can install smimesign using [Homebrew](https://brew.sh/):
