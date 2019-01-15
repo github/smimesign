@@ -20,15 +20,21 @@ PKI is used in a variety of applications for encrypting or authenticating commun
 
 ### macOS
 
-You can install smimesign using [Homebrew](https://brew.sh/):
+You can install `smimesign` using [Homebrew](https://brew.sh/):
 
-```
+```bash
 brew install smimesign
 ```
 
 You can also download a prebuilt macOS binary [here](https://github.com/github/smimesign/releases/latest). Put the binary on your `$PATH`, so Git will be able to find it.
 
 ### Windows
+
+You can install `smimesign` using [`scoop`](https://github.com/lukesampson/scoop):
+
+```batch
+scoop install smimesign
+```
 
 You can download prebuilt Windows binaries [here](https://github.com/github/smimesign/releases/latest). Put the appropriate binary on your `%PATH%`, so Git will be able to find it.
 
