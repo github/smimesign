@@ -6,6 +6,7 @@ import (
 	"encoding/pem"
 	"fmt"
 	"io"
+	"os"
 	"strings"
 
 	"github.com/mastahyeti/certstore"
@@ -37,8 +38,18 @@ func commandSign() error {
 		return errors.Wrap(err, "failed to get idenity signer")
 	}
 
+	var f io.ReadCloser
+	if len(fileArgs) == 1 {
+		if f, err = os.Open(fileArgs[0]); err != nil {
+			return errors.Wrapf(err, "failed to open message file (%s)", fileArgs[0])
+		}
+		defer f.Close()
+	} else {
+		f = stdin
+	}
+
 	dataBuf := new(bytes.Buffer)
-	if _, err = io.Copy(dataBuf, stdin); err != nil {
+	if _, err = io.Copy(dataBuf, f); err != nil {
 		return errors.Wrap(err, "failed to read message from stdin")
 	}
 
