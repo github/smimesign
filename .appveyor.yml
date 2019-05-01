@@ -14,9 +14,11 @@ init:
   - set CGO_ENABLED=1
   # Paths and Go environment
   - set GOPATH=c:\gopath
-  - set GOROOT=c:\go
+  - set GOROOT=c:\go112
   - set PATH=%GOROOT%\bin;%GOPATH%\bin;C:\msys64\usr\bin;C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\Bin;%PATH%
   - set PATH_WAS=%PATH%
+  # appveyor sets GO111MODULE=auto, which we don't want
+  - set GO111MODULE=on
 
 install:
   - go get github.com/josephspurrier/goversioninfo/cmd/goversioninfo

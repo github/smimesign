@@ -3,8 +3,7 @@ os: osx
 language: go
 
 go:
-  - 1.10.x
-  - 1.11.x
+  - 1.12.x
   - 1.x
   - master
 
@@ -15,9 +14,9 @@ install: ''
 
 script:
   - GIT_VERSION=$(git describe --tags)
-  - go build -o smimesign -ldflags "-X main.versionString=$GIT_VERSION" .
+  - GO111MODULE=on go build -o smimesign -ldflags "-X main.versionString=$GIT_VERSION" .
   - tar czf smimesign-$GIT_VERSION-macos.tgz smimesign
-  - go test -v ./...
+  - GO111MODULE=on go test -v ./...
 
 deploy:
   name: v$GIT_VERSION
