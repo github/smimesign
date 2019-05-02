@@ -27,10 +27,10 @@ install:
 before_build:
   # Figure out version numbers
   - git describe --tags > version
-  - set /p GIT_VERSION= < version
-  - FOR /F "delims=.- tokens=1" %%G IN (version) DO set VERSION_MAJOR=%%G
-  - FOR /F "delims=.- tokens=2" %%G IN (version) DO set VERSION_MINOR=%%G
-  - FOR /F "delims=.- tokens=3" %%G IN (version) DO set VERSION_PATCH=%%G
+  - FOR /F "delims=v tokens=1" %%G IN (version) DO set GIT_VERSION=%%G
+  - FOR /F "delims=v.- tokens=1" %%G IN (version) DO set VERSION_MAJOR=%%G
+  - FOR /F "delims=v.- tokens=2" %%G IN (version) DO set VERSION_MINOR=%%G
+  - FOR /F "delims=v.- tokens=3" %%G IN (version) DO set VERSION_PATCH=%%G
   # Generate resource.syso
   - go generate
 
@@ -70,8 +70,8 @@ artifacts:
 
 deploy:
   tag: $(GIT_VERSION)
-  release: v$(GIT_VERSION)
-  description: v$(GIT_VERSION)
+  release: $(GIT_VERSION)
+  description: $(GIT_VERSION)
   provider: GitHub
   auth_token:
     secure: sEpJVeD+tAT8soMS72SeGXEv1UVg7gG1ySy8rEfAO1T5HCaxD3jE6YoGmYOvKcbx
