@@ -19,7 +19,7 @@ script:
   - GO111MODULE=on go test -v ./...
 
 deploy:
-  name: v$GIT_VERSION
+  name: $GIT_VERSION
   provider: releases
   skip_cleanup: true
   file: smimesign-$GIT_VERSION-macos.tgz
