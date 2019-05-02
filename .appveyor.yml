@@ -27,10 +27,10 @@ install:
 before_build:
   # Figure out version numbers
   - git describe --tags > version
-  - set /p GIT_VERSION= < version
-  - FOR /F "delims=.- tokens=1" %%G IN (version) DO set VERSION_MAJOR=%%G
-  - FOR /F "delims=.- tokens=2" %%G IN (version) DO set VERSION_MINOR=%%G
-  - FOR /F "delims=.- tokens=3" %%G IN (version) DO set VERSION_PATCH=%%G
+  - FOR /F "delims=v tokens=1" %%G IN (version) DO set GIT_VERSION=%%G
+  - FOR /F "delims=v.- tokens=1" %%G IN (version) DO set VERSION_MAJOR=%%G
+  - FOR /F "delims=v.- tokens=2" %%G IN (version) DO set VERSION_MINOR=%%G
+  - FOR /F "delims=v.- tokens=3" %%G IN (version) DO set VERSION_PATCH=%%G
   # Generate resource.syso
   - go generate
 
