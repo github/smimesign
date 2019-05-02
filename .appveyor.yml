@@ -69,9 +69,9 @@ artifacts:
   - path: smimesign-windows-*.zip
 
 deploy:
-  tag: $(GIT_VERSION)
-  release: $(GIT_VERSION)
-  description: $(GIT_VERSION)
+  tag: v$(GIT_VERSION)
+  release: v$(GIT_VERSION)
+  description: v$(GIT_VERSION)
   provider: GitHub
   auth_token:
     secure: sEpJVeD+tAT8soMS72SeGXEv1UVg7gG1ySy8rEfAO1T5HCaxD3jE6YoGmYOvKcbx
