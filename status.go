@@ -206,7 +206,7 @@ func emitSigCreated(cert *x509.Certificate, isDetached bool) {
 
 func emitGoodSig(chains [][][]*x509.Certificate) {
 	cert := chains[0][0][0]
-	subj := cert.Subject.ToRDNSequence().String()
+	subj := cert.Subject.String()
 	fpr := certHexFingerprint(cert)
 
 	sGoodSig.emitf("%s %s", fpr, subj)
@@ -214,7 +214,7 @@ func emitGoodSig(chains [][][]*x509.Certificate) {
 
 func emitBadSig(chains [][][]*x509.Certificate) {
 	cert := chains[0][0][0]
-	subj := cert.Subject.ToRDNSequence().String
+	subj := cert.Subject.String
 	fpr := certHexFingerprint(cert)
 
 	sBadSig.emitf("%s %s", fpr, subj)

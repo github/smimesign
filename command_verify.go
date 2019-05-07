@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/x509"
 	"encoding/pem"
+	"fmt"
 	"io"
 	"os"
 
@@ -63,17 +64,25 @@ func verifyAttached() error {
 		if len(chains) > 0 {
 			emitBadSig(chains)
 		} else {
-			// TODO: We're ommitting a bunch of arguments here.
+			// TODO: We're omitting a bunch of arguments here.
 			sErrSig.emit()
 		}
 
 		return errors.Wrap(err, "failed to verify signature")
 	}
 
+	var (
+		cert = chains[0][0][0]
+		fpr  = certHexFingerprint(cert)
+		subj = cert.Subject.String()
+	)
+
+	fmt.Fprintf(stderr, "smimesign: Signature made using certificate ID 0x%s\n", fpr)
 	emitGoodSig(chains)
 
 	// TODO: Maybe split up signature checking and certificate checking so we can
 	// output something more meaningful.
+	fmt.Fprintf(stderr, "smimesign: Good signature from \"%s\"\n", subj)
 	emitTrustFully()
 
 	return nil
@@ -131,17 +140,25 @@ func verifyDetached() error {
 		if len(chains) > 0 {
 			emitBadSig(chains)
 		} else {
-			// TODO: We're ommitting a bunch of arguments here.
+			// TODO: We're omitting a bunch of arguments here.
 			sErrSig.emit()
 		}
 
 		return errors.Wrap(err, "failed to verify signature")
 	}
 
+	var (
+		cert = chains[0][0][0]
+		fpr  = certHexFingerprint(cert)
+		subj = cert.Subject.String()
+	)
+
+	fmt.Fprintf(stderr, "smimesign: Signature made using certificate ID 0x%s\n", fpr)
 	emitGoodSig(chains)
 
 	// TODO: Maybe split up signature checking and certificate checking so we can
 	// output something more meaningful.
+	fmt.Fprintf(stderr, "smimesign: Good signature from \"%s\"\n", subj)
 	emitTrustFully()
 
 	return nil
