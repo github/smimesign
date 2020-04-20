@@ -10,7 +10,8 @@ go:
 git:
   depth: false
 
-install: ''
+install:
+  - brew install libgit2
 
 script:
   - GIT_VERSION=$(git describe --tags)

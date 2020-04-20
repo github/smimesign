@@ -96,6 +96,15 @@ $ git config --get user.email
 $ smimesign --list-keys
 ```
 
+**Add smimesign options**
+
+Currently only `tsa` and `include-certs` options are supported.
+
+```bash
+$ git config --global gpg.x509.smimesign.timestamp-authority http://timestamp.digicert.com
+$ git config --global gpg.x509.smimesign.include-certs -1
+```
+
 ## Smart cards (PIV/CAC/Yubikey)
 
 Many large organizations and government agencies distribute certificates and keys to end users via smart cards. These cards allow applications on the user's computer to use private keys for signing or encryption without giving them the ability to export those keys. The native certificate stores on both Windows and macOS can talk to smart cards, though special drivers or middleware may be required.

@@ -3,6 +3,8 @@ github.com/certifi/gocertifi v0.0.0-20180118203423-deb3ae2ef261/go.mod h1:GJKEex
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
+github.com/libgit2/git2go/v30 v30.0.1 h1:uvQkdor2u7WKG9p8vAZNWFRlhQx/OxRinj8ucydrTJ4=
+github.com/libgit2/git2go/v30 v30.0.1/go.mod h1:YReiQ7xhMoyAL4ISYFLZt+OGqn6xtLqvTC1xJ9oAH7Y=
 github.com/mastahyeti/certstore v0.0.4 h1:lIS0StbHgmgUIpen7aayW+BGBFs7g141fOcjuobrFj8=
 github.com/mastahyeti/certstore v0.0.4/go.mod h1:G29tHH2jDKK45cvISMzk8ZRf3KrhRS7ptoteyYzztsk=
 github.com/mastahyeti/certstore v0.0.5 h1:8JV/YC8jN6SD+ocJi46PSdxXfPxwgilJJEA8HnG49ls=
