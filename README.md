@@ -107,5 +107,3 @@ If you can find your certificate in the Keychain Access app on macOS or in the C
 Many Yubikey models support the PIV smart card interface. To get your operating system to discover certificates and keys on your Yubikey, you may have to install the [OpenSC middleware](https://github.com/OpenSC/OpenSC/releases/latest). On macOS avoid installing OpenSC using homebrew, as it [omits an important component](https://discourse.brew.sh/t/opensc-formula-is-missing-the-opensc-tokend-component/1683/2). Instead use the installer provided by OpenSC or use the homebrew-cask formula.
 
 Additionally, to manage the manage certificates and keys on the Yubikey on macOS, you'll need the [Yubikey PIV Manager](https://www.yubico.com/support/knowledge-base/categories/articles/smart-card-tools/) (GUI) or the [Yubikey PIV Tool](https://www.yubico.com/support/knowledge-base/categories/articles/smart-card-tools/) (command line).
-
-![Yubikey PIV Keychain in macOS Keychain Access app](https://user-images.githubusercontent.com/248078/45328493-13705300-b511-11e8-97f4-1a04cf35cc6c.png)
