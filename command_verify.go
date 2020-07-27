@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"runtime"
 	"syscall"
 	"unsafe"
 
@@ -170,10 +171,53 @@ func verifyDetached() error {
 }
 
 func verifyOpts() x509.VerifyOptions {
-	roots := x509.NewCertPool()
-	storeHandle, err := syscall.CertOpenSystemStore(0, syscall.StringToUTF16Ptr("Root"))
+	var (
+		roots *x509.CertPool
+	)
+
+	// Depending on the operating system, enumerate the trusted root certificate store
+	switch runtime.GOOS {
+	case "windows":
+		err := getRootsWindows(roots)
+		if err != nil{
+			roots = x509.NewCertPool()
+		}
+	default:
+		err := getRoots(roots)
+		if err != nil{
+			roots = x509.NewCertPool()
+		}
+	}
+	return x509.VerifyOptions{
+		Roots:     roots,
+		KeyUsages: []x509.ExtKeyUsage{x509.ExtKeyUsageAny},
+	}
+}
+
+func getRoots(roots *x509.CertPool ) error{
+	roots, err := x509.SystemCertPool()
 	if err != nil {
-		fmt.Println(syscall.GetLastError())
+		return errors.Wrap(err, "Failed to parse root store")
+	}
+
+	for _, ident := range idents {
+		if cert, err := ident.Certificate(); err == nil {
+			roots.AddCert(cert)
+		}
+	}
+	return nil
+}
+
+func getRootsWindows(roots *x509.CertPool) error{
+	roots = x509.NewCertPool()
+
+	storeName, err:= syscall.UTF16PtrFromString("Root")
+	if err != nil {
+		return errors.Wrap(err, "Failed to get root store name")
+	}
+	storeHandle, err := syscall.CertOpenSystemStore(0, storeName)
+	if err != nil {
+		return errors.New(syscall.GetLastError().Error())
 	}
 
 	var cert *syscall.CertContext
@@ -185,7 +229,7 @@ func verifyOpts() x509.VerifyOptions {
 					break
 				}
 			}
-			fmt.Println(syscall.GetLastError())
+			return errors.New(syscall.GetLastError().Error())
 		}
 		if cert == nil {
 			break
@@ -198,9 +242,5 @@ func verifyOpts() x509.VerifyOptions {
 			roots.AddCert(c)
 		}
 	}
-
-	return x509.VerifyOptions{
-		Roots:     roots,
-		KeyUsages: []x509.ExtKeyUsage{x509.ExtKeyUsageAny},
-	}
+	return nil
 }
