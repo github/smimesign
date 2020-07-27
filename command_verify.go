@@ -5,19 +5,12 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
-	"io"
-	"os"
-	"runtime"
-	"syscall"
-	"unsafe"
-
 	"github.com/mastahyeti/cms"
 	"github.com/pkg/errors"
+	"io"
+	"os"
 )
 
-const (
-	CRYPT_E_NOT_FOUND = 0x80092004
-)
 
 func commandVerify() error {
 	sNewSig.emit()
@@ -176,71 +169,14 @@ func verifyOpts() x509.VerifyOptions {
 	)
 
 	// Depending on the operating system, enumerate the trusted root certificate store
-	switch runtime.GOOS {
-	case "windows":
-		err := getRootsWindows(roots)
-		if err != nil{
-			roots = x509.NewCertPool()
-		}
-	default:
-		err := getRoots(roots)
-		if err != nil{
-			roots = x509.NewCertPool()
-		}
+	err := parseRoots(roots)
+	if err != nil{
+		roots = x509.NewCertPool()
 	}
+
 	return x509.VerifyOptions{
 		Roots:     roots,
 		KeyUsages: []x509.ExtKeyUsage{x509.ExtKeyUsageAny},
 	}
 }
 
-func getRoots(roots *x509.CertPool ) error{
-	roots, err := x509.SystemCertPool()
-	if err != nil {
-		return errors.Wrap(err, "Failed to parse root store")
-	}
-
-	for _, ident := range idents {
-		if cert, err := ident.Certificate(); err == nil {
-			roots.AddCert(cert)
-		}
-	}
-	return nil
-}
-
-func getRootsWindows(roots *x509.CertPool) error{
-	roots = x509.NewCertPool()
-
-	storeName, err:= syscall.UTF16PtrFromString("Root")
-	if err != nil {
-		return errors.Wrap(err, "Failed to get root store name")
-	}
-	storeHandle, err := syscall.CertOpenSystemStore(0, storeName)
-	if err != nil {
-		return errors.New(syscall.GetLastError().Error())
-	}
-
-	var cert *syscall.CertContext
-	for {
-		cert, err = syscall.CertEnumCertificatesInStore(storeHandle, cert)
-		if err != nil {
-			if errno, ok := err.(syscall.Errno); ok {
-				if errno == CRYPT_E_NOT_FOUND {
-					break
-				}
-			}
-			return errors.New(syscall.GetLastError().Error())
-		}
-		if cert == nil {
-			break
-		}
-		// Copy the buf, since ParseCertificate does not create its own copy.
-		buf := (*[1 << 20]byte)(unsafe.Pointer(cert.EncodedCert))[:]
-		buf2 := make([]byte, cert.Length)
-		copy(buf2, buf)
-		if c, err := x509.ParseCertificate(buf2); err == nil {
-			roots.AddCert(c)
-		}
-	}
-	return nil
-}
