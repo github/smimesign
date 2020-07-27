@@ -1,6 +1,12 @@
 // +build !windows
 
 package main
+
+import (
+	"crypto/x509"
+	"github.com/pkg/errors"
+)
+
 func parseRoots(roots *x509.CertPool ) error{
 	roots, err := x509.SystemCertPool()
 	if err != nil {
