@@ -9,8 +9,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/mastahyeti/certstore"
-	"github.com/mastahyeti/cms"
+	"github.com/github/certstore"
+	"github.com/github/ietf-cms"
 	"github.com/pkg/errors"
 )
 
