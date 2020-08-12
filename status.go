@@ -22,7 +22,7 @@ const (
 	// BEGIN_SIGNING
 	//   Mark the start of the actual signing process. This may be used as an
 	//   indication that all requested secret keys are ready for use.
-	sBeginSigning status = "BEGING_SIGNING"
+	sBeginSigning status = "BEGIN_SIGNING"
 
 	// SIG_CREATED <type> <pk_algo> <hash_algo> <class> <timestamp> <keyfpr>
 	//   A signature has been created using these parameters.

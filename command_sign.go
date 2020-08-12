@@ -9,8 +9,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/mastahyeti/certstore"
-	"github.com/mastahyeti/cms"
+	"github.com/github/certstore"
+	"github.com/github/ietf-cms"
 	"github.com/pkg/errors"
 )
 
@@ -24,7 +24,7 @@ func commandSign() error {
 	}
 
 	// Git is looking for "\n[GNUPG:] SIG_CREATED ", meaning we need to print a
-	// line before SIG_CREATED. BEGING_SIGNING seems appropraite. GPG emits this,
+	// line before SIG_CREATED. BEGIN_SIGNING seems appropraite. GPG emits this,
 	// though GPGSM does not.
 	sBeginSigning.emit()
 

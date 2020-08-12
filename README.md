@@ -1,6 +1,6 @@
-# smimesign (S/MIME Sign) [![Windows Build Status](https://ci.appveyor.com/api/projects/status/hs3o1m9ornnp9d52/branch/master?svg=true)](https://ci.appveyor.com/project/mastahyeti/smimesign-0bhgj/branch/master) [![MacOS Build Status](https://travis-ci.org/github/smimesign.svg?branch=master)](https://travis-ci.org/github/smimesign)
+# smimesign (S/MIME Sign) [![Windows Build Status](https://ci.appveyor.com/api/projects/status/hs3o1m9ornnp9d52/branch/master?svg=true)](https://ci.appveyor.com/project/github/smimesign-0bhgj/branch/main) [![MacOS Build Status](https://travis-ci.org/github/smimesign.svg?branch=master)](https://travis-ci.org/github/smimesign)
 
-Smimesign is an S/MIME signing utility for macOS and Windows that is compatible with Git. This allows developers to sign their Git commits and tags using X.509 certificates issued by public certificate authorities or their organization's internal certificate authority. Smimesign uses keys and certificates already stored in the *macOS Keychain* or the *Windows Certificate Store*.
+Smimesign is an S/MIME signing utility for macOS and Windows that is compatible with Git. This allows developers to sign their Git commits and tags using X.509 certificates issued by public certificate authorities or their organization's internal certificate authority. Smimesign uses keys and certificates already stored in the _macOS Keychain_ or the _Windows Certificate Store_.
 
 This project is pre-1.0, meaning that APIs and functionality may change without warning.
 
@@ -14,7 +14,7 @@ Git allows developers to sign their work using GnuPG. This is a form of public k
 
 Such a model is well suited to an unstructured environment. In hierarchical environments though, such as a corporation or other large organizations, a simpler approach is for digital identities to be issued and vouched for by a centralized authority. With this approach — known as Public Key Infrastructure, or PKI — an organization's certificate authority (CA) issues signed certificates that identify subjects such as people or computers. Embedded in these certificates is the identity's public key, allowing others who trust the CA to verify that identity's signatures.
 
-PKI is used in a variety of applications for encrypting or authenticating communications. Secure Mime (S/MIME) standardized a protocol for encrypting and signing emails using PKI. While protecting email was the original intent, S/MIME can protect any type of data, including Git commits and tags. Signing Git data with S/MIME  provides the same protections as GnuPG while allowing for the more hierarchical trust model of PKI.
+PKI is used in a variety of applications for encrypting or authenticating communications. Secure Mime (S/MIME) standardized a protocol for encrypting and signing emails using PKI. While protecting email was the original intent, S/MIME can protect any type of data, including Git commits and tags. Signing Git data with S/MIME provides the same protections as GnuPG while allowing for the more hierarchical trust model of PKI.
 
 ## Installation
 

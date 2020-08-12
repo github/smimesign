@@ -5,7 +5,7 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
-	"github.com/mastahyeti/cms"
+	"github.com/github/ietf-cms"
 	"github.com/pkg/errors"
 	"io"
 	"os"
