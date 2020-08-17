@@ -1,4 +1,4 @@
-# smimesign (S/MIME Sign) [![Windows Build Status](https://ci.appveyor.com/api/projects/status/hs3o1m9ornnp9d52/branch/master?svg=true)](https://ci.appveyor.com/project/github/smimesign-0bhgj/branch/main) [![MacOS Build Status](https://travis-ci.org/github/smimesign.svg?branch=master)](https://travis-ci.org/github/smimesign)
+# smimesign (S/MIME Sign) [![Windows Build Status](https://ci.appveyor.com/api/projects/status/hs3o1m9ornnp9d52/branch/master?svg=true)](https://ci.appveyor.com/project/github/smimesign-0bhgj/branch/main) [![macOS Build Status](https://travis-ci.org/github/smimesign.svg?branch=main)](https://travis-ci.org/github/smimesign)
 
 Smimesign is an S/MIME signing utility for macOS and Windows that is compatible with Git. This allows developers to sign their Git commits and tags using X.509 certificates issued by public certificate authorities or their organization's internal certificate authority. Smimesign uses keys and certificates already stored in the _macOS Keychain_ or the _Windows Certificate Store_.
 
