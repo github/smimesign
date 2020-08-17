@@ -44,6 +44,32 @@ You can download prebuilt Windows binaries [here](https://github.com/github/smim
 - You'll probably want to put `$GOPATH/bin` on your `$PATH`.
 - Run `go get github.com/github/smimesign`
 
+## Standalone usage
+
+```sh
+$ smimesign --help
+Usage: smimesign [-abhsv] [--include-certs n] [--keyid-format {long}] [--list-keys] [--status-fd n] [-t url] [-u USER-ID] [--verify] [files]
+ -a, --armor                    create ascii armored output
+ -b, --detach-sign              make a detached signature
+ -h, --help                     print this help message
+     --include-certs=n          -3 is the same as -2, but ommits issuer
+                                when cert has Authority Information
+                                Access extension. -2 includes all certs
+                                except root. -1 includes all certs. 0
+                                includes no certs. 1 includes leaf cert.
+                                >1 includes n from the leaf. Default -2.
+     --keyid-format={long}      select  how  to  display key IDs.
+     --list-keys                show keys
+ -s, --sign                     make a signature
+     --status-fd=n              write special status strings to the file
+                                descriptor n.
+ -t, --timestamp-authority=url  URL of RFC3161 timestamp authority to
+                                use for timestamping
+ -u, --local-user=USER-ID       use USER-ID to sign
+     --verify                   verify a signature
+ -v, --version                  print the version number
+```
+
 ## Configuring Git
 
 Git needs to be told to sign commits and tags using smimesign instead of GnuPG. This can be configured on a global or per-repository level. The Git configuration directives for changing signing tools was changed in version 2.19.
@@ -94,6 +120,15 @@ $ git config --get user.email
 
 ```bash
 $ smimesign --list-keys
+```
+
+**Add smimesign options**
+
+Currently only `tsa` and `include-certs` options are supported.
+
+```bash
+$ git config --global gpg.x509.smimesign.timestamp-authority http://timestamp.digicert.com
+$ git config --global gpg.x509.smimesign.include-certs -1
 ```
 
 ## Smart cards (PIV/CAC/Yubikey)

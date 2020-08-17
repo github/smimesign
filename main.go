@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 
+	git "github.com/libgit2/git2go/v30"
 	"github.com/github/certstore"
 	"github.com/pborman/getopt/v2"
 	"github.com/pkg/errors"
@@ -70,6 +71,26 @@ func runCommand() error {
 	if *versionFlag {
 		fmt.Println(versionString)
 		return nil
+	}
+
+	// read tsa and include-certs from gitconfig
+	path, err := os.Getwd()
+	if err == nil {
+		repo, err := git.OpenRepository(path)
+		if err == nil {
+			config, err := repo.Config()
+
+			tsa, err := config.LookupString("gpg.x509.smimesign.timestamp-authority")
+			if err == nil {
+				tsaOpt = &tsa
+			}
+
+			includeCerts32, err := config.LookupInt32("gpg.x509.smimesign.include-certs")
+			if err == nil {
+				var includeCerts int = int(includeCerts32)
+				includeCertsOpt = &includeCerts
+			}
+		}
 	}
 
 	// Open certificate store
