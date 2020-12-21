@@ -24,6 +24,7 @@ func parseRoots(roots *x509.CertPool) error{
 	if err != nil {
 		return errors.New(syscall.GetLastError().Error())
 	}
+	defer syscall.CertCloseStore(storeHandle, 0)
 
 	var cert *syscall.CertContext
 	for {

@@ -8,7 +8,6 @@ import (
 	"io"
 	"os"
 
-	"github.com/certifi/gocertifi"
 	"github.com/github/ietf-cms"
 	"github.com/pkg/errors"
 )
@@ -173,6 +172,7 @@ func verifyOpts() x509.VerifyOptions {
 	// Depending on the operating system, enumerate the trusted root certificate store
 	err := parseRoots(roots)
 	if err != nil{
+		// Fall back to an empty store. Verifications will likely fail.
 		roots = x509.NewCertPool()
 	}
 
