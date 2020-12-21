@@ -1,7 +1,7 @@
 skip_branch_with_pr: true
-version: '{build}-{branch}'
+version: "{build}-{branch}"
 
-os: 'Visual Studio 2015'
+os: "Visual Studio 2015"
 
 clone_folder: C:\gopath\src\github.com\github\smimesign
 
@@ -79,5 +79,5 @@ deploy:
   draft: false
   prerelease: false
   on:
-    branch: master
+    branch: main
     appveyor_repo_tag: true

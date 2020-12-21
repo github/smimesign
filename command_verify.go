@@ -5,10 +5,12 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
-	"github.com/github/ietf-cms"
-	"github.com/pkg/errors"
 	"io"
 	"os"
+
+	"github.com/certifi/gocertifi"
+	"github.com/github/ietf-cms"
+	"github.com/pkg/errors"
 )
 
 
