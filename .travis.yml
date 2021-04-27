@@ -10,19 +10,23 @@ go:
 git:
   depth: false
 
+env:
+  - TARGET_ARCH: amd64
+  - TARGET_ARCH: arm64
+
 install: ''
 
 script:
   - GIT_VERSION=$(git describe --tags)
-  - GO111MODULE=on go build -o smimesign -ldflags "-X main.versionString=$GIT_VERSION" .
-  - tar czf smimesign-$GIT_VERSION-macos.tgz smimesign
+  - GOARCH=$TARGET_ARCH GO111MODULE=on go build -o smimesign -ldflags "-X main.versionString=$GIT_VERSION" .
+  - tar czf smimesign-$GIT_VERSION-macos-$TARGET_ARCH.tgz smimesign
   - GO111MODULE=on go test -v ./...
 
 deploy:
   name: $GIT_VERSION
   provider: releases
   skip_cleanup: true
-  file: smimesign-$GIT_VERSION-macos.tgz
+  file: smimesign-$GIT_VERSION-macos-$TARGET_ARCH.tgz
   on:
     tags: true
     go: 1.x
