@@ -1,4 +1,5 @@
 os: osx
+osx_image: xcode12.3
 
 language: go
 
@@ -12,13 +13,15 @@ git:
 
 env:
   - TARGET_ARCH: amd64
+    SDKROOT: /Library/Developer/CommandLineTools/SDKs/MacOSX11.1.sdk
   - TARGET_ARCH: arm64
+    SDKROOT: /Library/Developer/CommandLineTools/SDKs/MacOSX11.1.sdk
 
 install: ''
 
 script:
   - GIT_VERSION=$(git describe --tags)
-  - GOARCH=$TARGET_ARCH GO111MODULE=on go build -o smimesign -ldflags "-X main.versionString=$GIT_VERSION" .
+  - CGO_ENABLED=1 GOARCH=$TARGET_ARCH GO111MODULE=on go build -o smimesign -ldflags "-X main.versionString=$GIT_VERSION" .
   - tar czf smimesign-$GIT_VERSION-macos-$TARGET_ARCH.tgz smimesign
   - GO111MODULE=on go test -v ./...
 
