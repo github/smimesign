@@ -80,10 +80,22 @@ func runCommand() error {
 	defer store.Close()
 
 	// Get list of identities
-	idents, err = store.Identities()
+	pivIdents, err := PivIdentities()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "skipping hardware keys")
+	}
+	for _, pivIdent := range pivIdents {
+		idents = append(idents, &pivIdent)
+	}
+
+	storeIdents, err := store.Identities()
 	if err != nil {
 		return errors.Wrap(err, "failed to get identities from certificate store")
 	}
+	for _, ident := range storeIdents {
+		idents = append(idents, ident)
+	}
+
 	for _, ident := range idents {
 		defer ident.Close()
 	}

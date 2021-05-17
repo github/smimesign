@@ -23,11 +23,6 @@ func commandSign() error {
 		return fmt.Errorf("could not find identity matching specified user-id: %s", *localUserOpt)
 	}
 
-	// Git is looking for "\n[GNUPG:] SIG_CREATED ", meaning we need to print a
-	// line before SIG_CREATED. BEGIN_SIGNING seems appropraite. GPG emits this,
-	// though GPGSM does not.
-	sBeginSigning.emit()
-
 	cert, err := userIdent.Certificate()
 	if err != nil {
 		return errors.Wrap(err, "failed to get idenity certificate")
@@ -60,6 +55,10 @@ func commandSign() error {
 	if err = sd.Sign([]*x509.Certificate{cert}, signer); err != nil {
 		return errors.Wrap(err, "failed to sign message")
 	}
+	// Git is looking for "\n[GNUPG:] SIG_CREATED ", meaning we need to print a
+	// line before SIG_CREATED. BEGIN_SIGNING seems appropraite. GPG emits this,
+	// though GPGSM does not.
+	sBeginSigning.emit()
 	if *detachSignFlag {
 		sd.Detached()
 	}
