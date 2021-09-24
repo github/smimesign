@@ -1,0 +1,136 @@
+on: [push, pull_request]
+name: Build binaries
+jobs:
+  build-macos:
+    strategy:
+      matrix:
+        go-version: ["1.17"]
+        os: [macos-latest]
+    runs-on: ${{ matrix.os }}
+    env:
+      CGO_ENABLED: 1
+    steps:
+      - name: Install Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ matrix.go-version }}
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          # `fetch-depth: 0` gets us all tags.
+          fetch-depth: 0
+      - name: Calculate git version and add it to the environment
+        shell: bash
+        # We have to `$GITHUB_ENV` to create env vars that can be used in future steps (in particular, as part of download file names).
+        # https://docs.github.com/en/actions/reference/workflow-commands-for-github-actions#environment-files
+        # https://github.blog/changelog/2020-10-01-github-actions-deprecating-set-env-and-add-path-commands/
+        run: |
+          echo "GIT_VERSION=$(git describe --tags)" >> $GITHUB_ENV
+      - name: Build macos binary
+        run: |
+          go build -o build/macos/smimesign -ldflags "-X main.versionString=${{ env.GIT_VERSION }}" .
+      - name: Tar the macOS binary
+        run: |
+          # We cd so that the binary ends up in the top level of the tar.
+          cd build/macos && tar -czvf smimesign-macos-${{ env.GIT_VERSION }}.tgz smimesign
+      - name: Upload build folder to the action
+        uses: actions/upload-artifact@v2
+        with:
+          # Note: this artifact is shared across jobs:
+          # https://github.com/actions/upload-artifact#uploading-to-the-same-artifact
+          name: build
+          path: build/
+      - name: Upload macOS files to the release
+        # Pinned hash from https://github.com/softprops/action-gh-release/releases/tag/v0.1.12
+        uses: softprops/action-gh-release@2d72d869af3bf23602f9593a1e3fd739b80ac1eb
+        if: startsWith(github.ref, 'refs/tags/v')
+        with:
+          files: |
+            build/macOS/smimesign-macos-${{ env.GIT_VERSION }}.tgz
+  build-windows:
+    strategy:
+      matrix:
+        go-version: ["1.17"]
+        os: [windows-latest]
+    runs-on: ${{ matrix.os }}
+    env:
+      CGO_ENABLED: 1
+    steps:
+      - name: Install Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ matrix.go-version }}
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          # `fetch-depth: 0` gets us all tags.
+          fetch-depth: 0
+      - name: Calculate git version and add it to the environment
+        shell: bash
+        # We have to use this format to create env vars that can be used in future steps (in particular, as part of download file names).
+        # https://docs.github.com/en/actions/reference/workflow-commands-for-github-actions#environment-files
+        # https://github.blog/changelog/2020-10-01-github-actions-deprecating-set-env-and-add-path-commands/
+        run: |
+          echo "GIT_VERSION=$(git describe --tags)" >> $GITHUB_ENV
+      - name: Calculate bare git version and add it to the environment
+        # This is for InnoSetup
+        shell: bash
+        run: |
+          if [[ "${GIT_VERSION}" =~ ^v([[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+)(-[A-za-z0-9-]*)? ]]
+          then
+            echo "BARE_GIT_VERSION=${BASH_REMATCH[1]}" >> $GITHUB_ENV
+          else
+            echo "Could not calculate the bare git version (e.g. `v1.1.0-rc1-28-g8a54734` -> `1.1.0`) for: ${GIT_VERSION}"
+            exit 1
+          fi
+      - name: Build amd64
+        shell: bash
+        run: |
+          GOARCH=amd64 go build -o "build/amd64/smimesign.exe" -ldflags "-X main.versionString=${{ env.GIT_VERSION }}"
+      - name: Switch MinGW to x86
+        # Pinned hash from https://github.com/egor-tensin/setup-mingw/releases/tag/v2
+        uses: egor-tensin/setup-mingw@f3c5d799aadf8fa230ac67a422b01dd085bbc96b
+        with:
+          platform: x86
+      - name: Build 386
+        shell: bash
+        run: |
+          GOARCH=386 go build -o "build/386/smimesign.exe" -ldflags "-X main.versionString=${{ env.GIT_VERSION }}" .
+      - name: Sign amd64 and 386
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          .\windows-installer\signtool.exe sign /tr http://timestamp.digicert.com /td sha256 /fd sha256 /p ${{ secrets.PFX_PASSWORD }} /f windows-installer\codesign.pfx build/amd64/smimesign.exe
+          .\windows-installer\signtool.exe sign /tr http://timestamp.digicert.com /td sha256 /fd sha256 /p ${{ secrets.PFX_PASSWORD }} /f windows-installer\codesign.pfx build/386/smimesign.exe
+      - name: Create installer
+        shell: bash
+        run: |
+          GIT_VERSION=${{ env.GIT_VERSION }} BARE_GIT_VERSION=${{ env.BARE_GIT_VERSION }} iscc windows-installer/inno-setup-smimesign-installer.iss
+      - name: Sign installer
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          .\windows-installer\signtool.exe sign /tr http://timestamp.digicert.com /td sha256 /fd sha256 /p ${{ secrets.PFX_PASSWORD }} /f windows-installer\codesign.pfx build\installer\smimesign-windows-*.exe
+      - name: Create zips for release upload
+        run: |
+          Compress-Archive -Path build\amd64\smimesign.exe -DestinationPath build\amd64\smimesign.zip
+          Compress-Archive -Path build\386\smimesign.exe -DestinationPath build\386\smimesign.zip
+      - name: Rename zips for release upload
+        shell: bash
+        run: |
+          mv build/amd64/smimesign.zip build/amd64/smimesign-windows-amd64-${{ env.GIT_VERSION }}.zip
+          mv build/386/smimesign.zip build/386/smimesign-windows-386-${{ env.GIT_VERSION }}.zip
+      - name: Upload build folder to the action
+        uses: actions/upload-artifact@v2
+        with:
+          # Note: this artifact is shared across jobs:
+          # https://github.com/actions/upload-artifact#uploading-to-the-same-artifact
+          name: build
+          path: build/
+      - name: Upload Windows files to the release
+        # Pinned hash from https://github.com/softprops/action-gh-release/releases/tag/v0.1.12
+        uses: softprops/action-gh-release@2d72d869af3bf23602f9593a1e3fd739b80ac1eb
+        if: startsWith(github.ref, 'refs/tags/v')
+        with:
+          files: |
+            build/amd64/smimesign-windows-amd64-${{ env.GIT_VERSION }}.zip
+            build/386/smimesign-windows-386-${{ env.GIT_VERSION }}.zip
+            build/installer/smimesign-windows-*.exe

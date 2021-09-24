@@ -1,20 +1,17 @@
 #define MyAppName "smimesign"
 
-#define PathToX86Binary "../smimesign-386.exe"
+#define MyGitVersion GetEnv("GIT_VERSION")
+#define MyBareGitVersion GetEnv("BARE_GIT_VERSION")
+
+#define PathToX86Binary "../build/386/smimesign.exe"
 #ifnexist PathToX86Binary
   #pragma error PathToX86Binary + " does not exist, please build it first."
 #endif
 
-#define PathToX64Binary "../smimesign-amd64.exe"
+#define PathToX64Binary "../build/amd64/smimesign.exe"
 #ifnexist PathToX64Binary
   #pragma error PathToX64Binary + " does not exist, please build it first."
 #endif
-
-; Arbitrarily choose the x86 executable here as both have the version embedded.
-#define MyVersionInfoVersion GetFileVersion(PathToX86Binary)
-
-; Misuse RemoveFileExt to strip the 4th patch-level version number.
-#define MyAppVersion RemoveFileExt(MyVersionInfoVersion)
 
 #define MyAppPublisher "GitHub, Inc."
 #define MyAppURL "https://github.com/github/smimesign"
@@ -31,7 +28,7 @@ AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
-AppVersion={#MyAppVersion}
+AppVerName={#MyBareGitVersion}
 ArchitecturesInstallIn64BitMode=x64
 ChangesEnvironment=yes
 Compression=lzma
@@ -39,12 +36,12 @@ DefaultDirName={code:GetDefaultDirName}
 DirExistsWarning=no
 DisableReadyPage=True
 LicenseFile=..\LICENSE.md
-OutputBaseFilename={#MyAppFilePrefix}-{#MyAppVersion}
-OutputDir=..\
+OutputBaseFilename={#MyAppFilePrefix}-{#MyGitVersion}
+OutputDir=..\build\installer\
 PrivilegesRequired=none
 SolidCompression=yes
 UsePreviousAppDir=no
-VersionInfoVersion={#MyVersionInfoVersion}
+VersionInfoVersion={#MyBareGitVersion}
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -60,7 +57,7 @@ Root: HKCU; Subkey: "Environment"; ValueType: expandsz; ValueName: "Path"; Value
 [Code]
 function GetDefaultDirName(Dummy: string): string;
 begin
-  if IsAdminLoggedOn then begin
+  if IsAdminInstallMode then begin
     Result:=ExpandConstant('{pf}\{#MyAppName}');
   end else begin
     Result:=ExpandConstant('{userpf}\{#MyAppName}');
