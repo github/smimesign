@@ -9,6 +9,8 @@ github.com/github/fakeca v0.1.0 h1:Km/MVOFvclqxPM9dZBC4+QE564nU4gz4iZ0D9pMw28I=
 github.com/github/fakeca v0.1.0/go.mod h1:+bormgoGMMuamOscx7N91aOuUST7wdaJ2rNjeohylyo=
 github.com/github/ietf-cms v0.1.0 h1:D+O9re6xDeWTYRpAFTfM0dm5NqJUcXZKFGOQg5Iq6Ls=
 github.com/github/ietf-cms v0.1.0/go.mod h1:eJEmhqWUqjpuS6OoXiqtuTmzOx4u81npQrXOzt/sPqo=
+github.com/github/ietf-cms v0.1.2 h1:YR01RZde22wi0FDNjlxfrzSdftlTSqjMXVQKXTnP3k4=
+github.com/github/ietf-cms v0.1.2/go.mod h1:cVKaskLRggxGmj5FRRU4OxryCkKSnYq4K32xYWOxnl0=
 github.com/pborman/getopt v0.0.0-20180811024354-2b5b3bfb099b h1:K1wa7ads2Bu1PavI6LfBRMYSy6Zi+Rky0OhWBfrmkmY=
 github.com/pborman/getopt v0.0.0-20180811024354-2b5b3bfb099b/go.mod h1:85jBQOZwpVEaDAr341tbn15RS4fCAsIst0qp7i8ex1o=
 github.com/pkg/errors v0.8.0 h1:WdK/asTD0HN+q6hsWO3/vpuAkAr+tw6aNJNDFFf0+qw=
@@ -28,3 +30,4 @@ golang.org/x/net v0.0.0-20190404232315-eb5bcb51f2a3/go.mod h1:t9HGtf8HONx5eT2rtn
 golang.org/x/sys v0.0.0-20190215142949-d0b11bdaac8a/go.mod h1:STP8DvDyc/dI5b8T5hshtkjS+E42TnysNCUPdjciGhY=
 golang.org/x/sys v0.0.0-20190412213103-97732733099d/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/text v0.3.0/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=
+golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
