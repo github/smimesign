@@ -9,7 +9,7 @@ import (
 	"os"
 
 	"github.com/certifi/gocertifi"
-	"github.com/github/ietf-cms"
+	cms "github.com/github/smimesign/ietf-cms"
 	"github.com/pkg/errors"
 )
 

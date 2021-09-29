@@ -4,8 +4,8 @@ import (
 	"crypto/x509"
 	"testing"
 
-	"github.com/github/ietf-cms/protocol"
-	"github.com/github/ietf-cms"
+	cms "github.com/github/smimesign/ietf-cms"
+	"github.com/github/smimesign/ietf-cms/protocol"
 	"github.com/stretchr/testify/require"
 )
 
