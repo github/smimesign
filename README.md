@@ -4,6 +4,12 @@ Smimesign is an S/MIME signing utility for macOS and Windows that is compatible 
 
 This project is pre-1.0, meaning that APIs and functionality may change without warning.
 
+This package also contains reusable libraries in nested packages:
+
+- [`github.com/smimesign/certstore`](./certstore)
+- [`github.com/smimesign/fakeca`](./fakeca)
+- [`github.com/smimesign/ietf-cms`](./ietf-cms)
+
 ## Contributing
 
 Different organizations do PKI differently and we weren't able to test everyone's setup. Contributions making this tool work better for your organization are welcome. See the [contributing docs](CONTRIBUTING.md) for more information on how to get involved.
