@@ -1,4 +1,4 @@
-# cms/protocol [![GoDoc](https://pkg.go.dev/badge/github.com/github/smimesign/ietf-cms/protocol?utm_source=godoc)](https://pkg.go.dev/github.com/github/smimesign/ietf-cms?tab=doc)
+# cms/protocol [![PkgGoDev](https://pkg.go.dev/badge/github.com/github/smimesign/ietf-cms/protocol?utm_source=godoc)](https://pkg.go.dev/github.com/github/smimesign/ietf-cms/protocol?tab=doc)
 
 cms/protocol implements low-level parsing of CMS (PKCS#7) data.
 
