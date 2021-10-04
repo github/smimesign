@@ -1,4 +1,4 @@
-# fakeca [![PkgGoDev](https://pkg.go.dev/badge/github.com/github/fakeca?tab=doc)](https://pkg.go.dev/github.com/github/fakeca?tab=doc) [![Report card](https://goreportcard.com/badge/github.com/github/fakeca)](https://goreportcard.com/report/github.com/github/fakeca) [![Actions CI](https://github.com/github/fakeca/workflows/Test/badge.svg)](https://github.com/github/fakeca/actions?query=workflow%3ATest)
+# fakeca [![PkgGoDev](https://pkg.go.dev/badge/github.com/github/smimesign/fakeca?tab=doc)](https://pkg.go.dev/github.com/github/smimesign/fakeca?tab=doc) 
 
 This is a package for creating fake certificate authorities for test fixtures.
 
@@ -10,7 +10,7 @@ package main
 import (
 	"crypto/x509/pkix"
 
-	"github.com/github/fakeca"
+	"github.com/github/smimesign/fakeca"
 )
 
 func main() {

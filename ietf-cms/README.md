@@ -1,7 +1,4 @@
-# CMS [![PkgGoDev](https://pkg.go.dev/badge/github.com/github/ietf-cms?tab=doc)](https://pkg.go.dev/github.com/github/ietf-cms?tab=doc) [![Report card](https://goreportcard.com/badge/github.com/github/ietf-cms)](https://goreportcard.com/report/github.com/github/ietf-cms)
-
-[![Test (recent Go versions)](<https://github.com/github/ietf-cms/workflows/Test%20(recent%20Go%20versions)/badge.svg>)](https://github.com/github/ietf-cms/actions?query=workflow%3A%22Test+%28recent+Go+versions%29%22)  
-[![Test (Go 1.10)](<https://github.com/github/ietf-cms/workflows/Test%20(Go%201.10)/badge.svg>)](https://github.com/github/ietf-cms/actions?query=workflow%3A%22Test+%28Go+1.10%29%22)
+# CMS [![PkgGoDev](https://pkg.go.dev/badge/github.com/github/smimesign/ietf-cms?tab=doc)](https://pkg.go.dev/github.com/github/smimesign/ietf-cms?tab=doc) 
 
 [CMS (Cryptographic Message Syntax)](https://tools.ietf.org/html/rfc5652) is a syntax for signing, digesting, and encrypting arbitrary messages. It evolved from PKCS#7 and is the basis for higher level protocols such as S/MIME. This package implements the SignedData CMS content-type, allowing users to digitally sign data as well as verify data signed by others.
 
