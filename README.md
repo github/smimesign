@@ -1,6 +1,6 @@
 # smimesign (S/MIME Sign)
 
-[![PkgGoDev](https://pkg.go.dev/badge/github.com/github/smimesign?utm_source=godoc)]
+![PkgGoDev](https://pkg.go.dev/badge/github.com/github/smimesign?utm_source=godoc)
 
 Smimesign is an S/MIME signing utility for macOS and Windows that is compatible with Git. This allows developers to sign their Git commits and tags using X.509 certificates issued by public certificate authorities or their organization's internal certificate authority. Smimesign uses keys and certificates already stored in the _macOS Keychain_ or the _Windows Certificate Store_.
 
