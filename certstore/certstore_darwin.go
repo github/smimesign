@@ -160,8 +160,9 @@ func (i *macIdentity) CertificateChain() ([]*x509.Certificate, error) {
 	}
 	defer C.CFRelease(C.CFTypeRef(trustRef))
 
+	_ = C.SecTrustEvaluateWithError(trustRef, &nilCFErrorRef)
 	var status C.SecTrustResultType
-	if err := osStatusError(C.SecTrustEvaluate(trustRef, &status)); err != nil {
+	if err := osStatusError(C.SecTrustGetTrustResult(trustRef, &status)); err != nil {
 		return nil, err
 	}
 
