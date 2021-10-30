@@ -659,7 +659,7 @@ func (sd *SignedData) AddSignerInfo(chain []*x509.Certificate, signer crypto.Sig
 		return err
 	}
 
-	digestAlgorithmID := digestAlgorithmForPublicKey(pub)
+	digestAlgorithmID := digestAlgorithmForPublicKey(signer.Public())
 
 	signatureAlgorithmOID, ok := oid.X509PublicKeyAndDigestAlgorithmToSignatureAlgorithm[cert.PublicKeyAlgorithm][digestAlgorithmID.Algorithm.String()]
 	if !ok {
