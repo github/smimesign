@@ -17,6 +17,7 @@ func normalizeFingerprint(sfpr string) []byte {
 		return nil
 	}
 
+	sfpr = strings.TrimSpace(sfpr)
 	if strings.HasPrefix(sfpr, "0x") {
 		sfpr = sfpr[2:]
 	}
