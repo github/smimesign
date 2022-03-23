@@ -19,7 +19,7 @@ func chainContains(chain []*x509.Certificate, want *x509.Certificate) bool {
 }
 
 func TestSign(t *testing.T) {
-	defer testSetup(t, "--sign", "-u", certHexFingerprint(leaf.Certificate))()
+	defer testSetup(t, "-su " + certHexFingerprint(leaf.Certificate))()
 
 	stdinBuf.WriteString("hello, world!")
 	require.NoError(t, commandSign())
