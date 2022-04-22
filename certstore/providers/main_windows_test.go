@@ -1,4 +1,4 @@
-package certstore
+package providers
 
 import (
 	"fmt"

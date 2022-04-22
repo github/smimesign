@@ -1,4 +1,4 @@
-package certstore
+package providers
 
 import (
 	"crypto/ecdsa"
@@ -9,6 +9,7 @@ import (
 	"crypto/x509/pkix"
 	"testing"
 
+	"github.com/github/smimesign/certstore"
 	"github.com/github/smimesign/fakeca"
 )
 
@@ -38,11 +39,12 @@ var (
 
 func init() {
 	// delete any fixtures from a previous test run.
+	certstore.RegisterStore(openStore)
 	clearFixtures()
 }
 
-func withStore(t *testing.T, cb func(Store)) {
-	store, err := Open()
+func withStore(t *testing.T, cb func(certstore.Store)) {
+	store, err := certstore.Open()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -51,8 +53,8 @@ func withStore(t *testing.T, cb func(Store)) {
 	cb(store)
 }
 
-func withIdentity(t *testing.T, i *fakeca.Identity, cb func(Identity)) {
-	withStore(t, func(store Store) {
+func withIdentity(t *testing.T, i *fakeca.Identity, cb func(certstore.Identity)) {
+	withStore(t, func(store certstore.Store) {
 		// Import an identity
 		if err := store.Import(i.PFX("asdf"), "asdf"); err != nil {
 			t.Fatal(err)
@@ -67,7 +69,7 @@ func withIdentity(t *testing.T, i *fakeca.Identity, cb func(Identity)) {
 			defer ident.Close()
 		}
 
-		var found Identity
+		var found certstore.Identity
 		for _, ident := range idents {
 			crt, err := ident.Certificate()
 			if err != nil {
@@ -86,7 +88,7 @@ func withIdentity(t *testing.T, i *fakeca.Identity, cb func(Identity)) {
 		}
 
 		// Clean up after ourselves.
-		defer func(f Identity) {
+		defer func(f certstore.Identity) {
 			if err := f.Delete(); err != nil {
 				t.Fatal(err)
 			}
@@ -97,7 +99,7 @@ func withIdentity(t *testing.T, i *fakeca.Identity, cb func(Identity)) {
 }
 
 func clearFixtures() {
-	store, err := Open()
+	store, err := certstore.Open()
 	if err != nil {
 		panic(err)
 	}

@@ -1,4 +1,4 @@
-package certstore
+package providers
 
 /*
 #cgo CFLAGS: -x objective-c
@@ -16,7 +16,13 @@ import (
 	"fmt"
 	"io"
 	"unsafe"
+
+	"github.com/github/smimesign/certstore"
 )
+
+func init() {
+	certstore.RegisterStore(openStore)
+}
 
 // work around https://golang.org/doc/go1.10#cgo
 // in go>=1.10 CFTypeRefs are translated to uintptrs instead of pointers.
@@ -37,12 +43,12 @@ var (
 type macStore int
 
 // openStore is a function for opening a macStore.
-func openStore() (macStore, error) {
+func openStore() (certstore.Store, error) {
 	return macStore(0), nil
 }
 
 // Identities implements the Store interface.
-func (s macStore) Identities() ([]Identity, error) {
+func (s macStore) Identities() ([]certstore.Identity, error) {
 	query := mapToCFDictionary(map[C.CFTypeRef]C.CFTypeRef{
 		C.CFTypeRef(C.kSecClass):      C.CFTypeRef(C.kSecClassIdentity),
 		C.CFTypeRef(C.kSecReturnRef):  C.CFTypeRef(C.kCFBooleanTrue),
@@ -56,7 +62,7 @@ func (s macStore) Identities() ([]Identity, error) {
 	var absResult C.CFTypeRef
 	if err := osStatusError(C.SecItemCopyMatching(query, &absResult)); err != nil {
 		if err == errSecItemNotFound {
-			return []Identity{}, nil
+			return []certstore.Identity{}, nil
 		}
 
 		return nil, err
@@ -71,7 +77,7 @@ func (s macStore) Identities() ([]Identity, error) {
 	identRefs := make([]C.CFTypeRef, n)
 	C.CFArrayGetValues(aryResult, C.CFRange{0, n}, (*unsafe.Pointer)(unsafe.Pointer(&identRefs[0])))
 
-	idents := make([]Identity, 0, n)
+	idents := make([]certstore.Identity, 0, n)
 	for _, identRef := range identRefs {
 		idents = append(idents, newMacIdentity(C.SecIdentityRef(identRef)))
 	}
@@ -319,7 +325,7 @@ func (i *macIdentity) getAlgo(hash crypto.Hash) (algo C.SecKeyAlgorithm, err err
 		case crypto.SHA512:
 			algo = C.kSecKeyAlgorithmECDSASignatureDigestX962SHA512
 		default:
-			err = ErrUnsupportedHash
+			err = certstore.ErrUnsupportedHash
 		}
 	case *rsa.PublicKey:
 		switch hash {
@@ -332,7 +338,7 @@ func (i *macIdentity) getAlgo(hash crypto.Hash) (algo C.SecKeyAlgorithm, err err
 		case crypto.SHA512:
 			algo = C.kSecKeyAlgorithmRSASignatureDigestPKCS1v15SHA512
 		default:
-			err = ErrUnsupportedHash
+			err = certstore.ErrUnsupportedHash
 		}
 	default:
 		err = errors.New("unsupported key type")
