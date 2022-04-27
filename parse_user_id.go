@@ -4,7 +4,8 @@ import "strings"
 
 // The following was copied from the crypto/openpgpg/packet package.
 
-// The original license can be found at https://git.io/vFFwQ
+// The original license can be found at
+// https://github.com/golang/crypto/blob/9f005a07e0d31d45e6656d241bb5c0f2efd4bc94/LICENSE
 //
 //     Copyright (c) 2009 The Go Authors. All rights reserved.
 //
@@ -34,7 +35,8 @@ import "strings"
 //     (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 //     OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-// The orignal code can be found at https://git.io/vFFwX
+// The orignal code can be found at
+// https://github.com/golang/crypto/blob/9f005a07e0d31d45e6656d241bb5c0f2efd4bc94/openpgp/packet/userid.go#L89-L160
 //
 // parseUserID extracts the name, comment and email from a user id string that
 // is formatted as "Full Name (Comment) <email@example.com>".

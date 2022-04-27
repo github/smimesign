@@ -14,7 +14,8 @@ import (
 
 // This file implements gnupg's "status protocol". When the --status-fd argument
 // is passed, gpg will output machine-readable status updates to that fd.
-// Details on the "protocol" can be found at https://git.io/vFFKC
+// Details on the "protocol" can be found at
+// https://github.com/gpg/gnupg/blob/918792befd835e04b4043b9ce42ea6d829a284fa/doc/DETAILS#format-of-the-status-fd-output
 
 type status string
 
