@@ -10,6 +10,9 @@ import (
 	"github.com/github/smimesign/certstore"
 	"github.com/pborman/getopt/v2"
 	"github.com/pkg/errors"
+
+	// Registers OS-specific certstore providers.
+	_ "github.com/github/smimesign/certstore/providers"
 )
 
 var (

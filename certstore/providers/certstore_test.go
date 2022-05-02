@@ -1,4 +1,4 @@
-package certstore
+package providers
 
 import (
 	"crypto"
@@ -11,6 +11,7 @@ import (
 	"crypto/x509"
 	"testing"
 
+	"github.com/github/smimesign/certstore"
 	"github.com/github/smimesign/fakeca"
 )
 
@@ -24,7 +25,7 @@ func TestImportDeleteECDSA(t *testing.T) {
 
 // ImportDeleteHelper is an abstraction for testing identity Import()/Delete().
 func ImportDeleteHelper(t *testing.T, i *fakeca.Identity) {
-	withStore(t, func(store Store) {
+	withStore(t, func(store certstore.Store) {
 		// Import an identity
 		if err := store.Import(i.PFX("asdf"), "asdf"); err != nil {
 			t.Fatal(err)
@@ -39,7 +40,7 @@ func ImportDeleteHelper(t *testing.T, i *fakeca.Identity) {
 			defer ident.Close()
 		}
 
-		var found Identity
+		var found certstore.Identity
 		for _, ident := range idents {
 			crt, errr := ident.Certificate()
 			if errr != nil {
@@ -95,7 +96,7 @@ func TestSignerRSA(t *testing.T) {
 		t.Fatal("expected priv to be an RSA private key")
 	}
 
-	withIdentity(t, leafRSA, func(ident Identity) {
+	withIdentity(t, leafRSA, func(ident certstore.Identity) {
 		signer, err := ident.Signer()
 		if err != nil {
 			t.Fatal(err)
@@ -129,7 +130,7 @@ func TestSignerRSA(t *testing.T) {
 		// SHA256WithRSA
 		sha256Digest := sha256.Sum256([]byte("hello"))
 		sig, err = signer.Sign(rand.Reader, sha256Digest[:], crypto.SHA256)
-		if err == ErrUnsupportedHash {
+		if err == certstore.ErrUnsupportedHash {
 			// Some Windows CSPs may not support this algorithm. Pass...
 		} else if err != nil {
 			t.Fatal(err)
@@ -142,7 +143,7 @@ func TestSignerRSA(t *testing.T) {
 		// SHA384WithRSA
 		sha384Digest := sha512.Sum384([]byte("hello"))
 		sig, err = signer.Sign(rand.Reader, sha384Digest[:], crypto.SHA384)
-		if err == ErrUnsupportedHash {
+		if err == certstore.ErrUnsupportedHash {
 			// Some Windows CSPs may not support this algorithm. Pass...
 		} else if err != nil {
 			t.Fatal(err)
@@ -155,7 +156,7 @@ func TestSignerRSA(t *testing.T) {
 		// SHA512WithRSA
 		sha512Digest := sha512.Sum512([]byte("hello"))
 		sig, err = signer.Sign(rand.Reader, sha512Digest[:], crypto.SHA512)
-		if err == ErrUnsupportedHash {
+		if err == certstore.ErrUnsupportedHash {
 			// Some Windows CSPs may not support this algorithm. Pass...
 		} else if err != nil {
 			t.Fatal(err)
@@ -174,7 +175,7 @@ func TestSignerRSA(t *testing.T) {
 		// Unsupported hash
 		sha224Digest := sha256.Sum224([]byte("hello"))
 		_, err = signer.Sign(rand.Reader, sha224Digest[:], crypto.SHA224)
-		if err != ErrUnsupportedHash {
+		if err != certstore.ErrUnsupportedHash {
 			t.Fatal("expected ErrUnsupportedHash, got ", err)
 		}
 	})
@@ -186,7 +187,7 @@ func TestSignerECDSA(t *testing.T) {
 		t.Fatal("expected priv to be an ECDSA private key")
 	}
 
-	withIdentity(t, leafEC, func(ident Identity) {
+	withIdentity(t, leafEC, func(ident certstore.Identity) {
 		signer, err := ident.Signer()
 		if err != nil {
 			t.Fatal(err)
@@ -263,9 +264,9 @@ func TestCertificateEC(t *testing.T) {
 }
 
 func CertificateHelper(t *testing.T, leaf *fakeca.Identity) {
-	withIdentity(t, root, func(caIdent Identity) {
-		withIdentity(t, intermediate, func(interIdent Identity) {
-			withIdentity(t, leaf, func(leafIdent Identity) {
+	withIdentity(t, root, func(caIdent certstore.Identity) {
+		withIdentity(t, intermediate, func(interIdent certstore.Identity) {
+			withIdentity(t, leaf, func(leafIdent certstore.Identity) {
 				crtActual, err := leafIdent.Certificate()
 				if err != nil {
 					t.Fatal(err)

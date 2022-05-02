@@ -10,7 +10,15 @@ var (
 	// ErrUnsupportedHash is returned by Signer.Sign() when the provided hash
 	// algorithm isn't supported.
 	ErrUnsupportedHash = errors.New("unsupported hash algorithm")
+
+	openStore func() (Store, error)
 )
+
+// RegisterStore registers a func to initialize a new certificate store.
+// This should be invoked by providers during init().
+func RegisterStore(f func() (Store, error)) {
+	openStore = f
+}
 
 // Open opens the system's certificate store.
 func Open() (Store, error) {
