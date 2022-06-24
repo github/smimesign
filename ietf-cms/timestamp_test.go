@@ -24,7 +24,7 @@ func TestAddTimestamps(t *testing.T) {
 	if _, err := sd.Verify(intermediateOpts); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := getTimestamp(sd.psd.SignerInfos[0], intermediateOpts); err != nil {
+	if _, err := getTimestamp(sd.SignerInfos[0], intermediateOpts); err != nil {
 		t.Fatal(err)
 	}
 
@@ -68,17 +68,17 @@ func TestTimestampsVerifications(t *testing.T) {
 	getTimestampedSignedData := func() *SignedData {
 		sd, _ := NewSignedData([]byte("hi"))
 		sd.Sign(leaf.Chain(), leaf.PrivateKey)
-		tsReq, _ := tsRequest(sd.psd.SignerInfos[0])
+		tsReq, _ := tsRequest(sd.SignerInfos[0])
 		tsResp, _ := tsa.Do(tsReq)
 		tsAttr, _ := protocol.NewAttribute(oid.AttributeTimeStampToken, tsResp.TimeStampToken)
-		sd.psd.SignerInfos[0].UnsignedAttrs = append(sd.psd.SignerInfos[0].UnsignedAttrs, tsAttr)
+		sd.SignerInfos[0].UnsignedAttrs = append(sd.SignerInfos[0].UnsignedAttrs, tsAttr)
 		return sd
 	}
 
 	// Good timestamp
 	tsa.Clear()
 	sd := getTimestampedSignedData()
-	if _, err := getTimestamp(sd.psd.SignerInfos[0], intermediateOpts); err != nil {
+	if _, err := getTimestamp(sd.SignerInfos[0], intermediateOpts); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := sd.Verify(intermediateOpts); err != nil {
@@ -97,7 +97,7 @@ func TestTimestampsVerifications(t *testing.T) {
 		return info
 	})
 	sd = getTimestampedSignedData()
-	if _, err := getTimestamp(sd.psd.SignerInfos[0], intermediateOpts); err != nil {
+	if _, err := getTimestamp(sd.SignerInfos[0], intermediateOpts); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := sd.Verify(intermediateOpts); err == nil || !strings.HasPrefix(err.Error(), "x509: certificate has expired") {
@@ -116,7 +116,7 @@ func TestTimestampsVerifications(t *testing.T) {
 		return info
 	})
 	sd = getTimestampedSignedData()
-	if _, err := getTimestamp(sd.psd.SignerInfos[0], intermediateOpts); err != nil {
+	if _, err := getTimestamp(sd.SignerInfos[0], intermediateOpts); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := sd.Verify(intermediateOpts); err != nil {
@@ -135,7 +135,7 @@ func TestTimestampsVerifications(t *testing.T) {
 		return info
 	})
 	sd = getTimestampedSignedData()
-	if _, err := getTimestamp(sd.psd.SignerInfos[0], intermediateOpts); err != nil {
+	if _, err := getTimestamp(sd.SignerInfos[0], intermediateOpts); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := sd.Verify(intermediateOpts); err == nil || !strings.HasPrefix(err.Error(), "x509: certificate has expired") {
@@ -154,7 +154,7 @@ func TestTimestampsVerifications(t *testing.T) {
 		return info
 	})
 	sd = getTimestampedSignedData()
-	if _, err := getTimestamp(sd.psd.SignerInfos[0], intermediateOpts); err != nil {
+	if _, err := getTimestamp(sd.SignerInfos[0], intermediateOpts); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := sd.Verify(intermediateOpts); err != nil {
@@ -167,7 +167,7 @@ func TestTimestampsVerifications(t *testing.T) {
 		return info
 	})
 	sd = getTimestampedSignedData()
-	if _, err := getTimestamp(sd.psd.SignerInfos[0], intermediateOpts); err == nil || err.Error() != "invalid message imprint" {
+	if _, err := getTimestamp(sd.SignerInfos[0], intermediateOpts); err == nil || err.Error() != "invalid message imprint" {
 		t.Fatalf("expected 'invalid message imprint', got %v", err)
 	}
 
@@ -179,7 +179,7 @@ func TestTimestampsVerifications(t *testing.T) {
 		return tst
 	})
 	sd = getTimestampedSignedData()
-	if _, err := getTimestamp(sd.psd.SignerInfos[0], intermediateOpts); err == nil {
+	if _, err := getTimestamp(sd.SignerInfos[0], intermediateOpts); err == nil {
 		t.Fatal("expected error")
 	} else if _, ok := err.(x509.UnknownAuthorityError); !ok {
 		t.Fatalf("expected x509.UnknownAuthorityError, got %v", err)
@@ -191,7 +191,7 @@ func TestTimestampsVerifications(t *testing.T) {
 		return tst
 	})
 	sd = getTimestampedSignedData()
-	if _, err := getTimestamp(sd.psd.SignerInfos[0], intermediateOpts); err != rsa.ErrVerification {
+	if _, err := getTimestamp(sd.SignerInfos[0], intermediateOpts); err != rsa.ErrVerification {
 		t.Fatalf("expected %v, got %v", rsa.ErrVerification, err)
 	}
 }
