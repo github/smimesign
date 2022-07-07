@@ -637,7 +637,7 @@ func (c errCode) Error() string {
 	if cmsg == nil {
 		return fmt.Sprintf("Error %X", int(c))
 	}
-	defer C.LocalFree(C.HLOCAL(cmsg))
+	defer C.LocalFree(C.HLOCAL(unsafe.Pointer(cmsg)))
 
 	gomsg := C.GoString(cmsg)
 
