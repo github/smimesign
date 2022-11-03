@@ -21,10 +21,14 @@ var (
 	// go build -ldflags "-X main.defaultTSA=${https://whatever}"
 	defaultTSA = ""
 
+	// common usage error response if the user provides incompatible options
+	usageError = errors.New("specify --help, --sign, --verify, or --list-keys")
+
 	// Action flags
 	helpFlag     = getopt.BoolLong("help", 'h', "print this help message")
 	versionFlag  = getopt.BoolLong("version", 'v', "print the version number")
 	signFlag     = getopt.BoolLong("sign", 's', "make a signature")
+	jwtFlag      = getopt.BoolLong("jwt", 'j', "create and sign a JSON Web Token (JWT)")
 	verifyFlag   = getopt.BoolLong("verify", 0, "verify a signature")
 	listKeysFlag = getopt.BoolLong("list-keys", 0, "show keys")
 
@@ -90,7 +94,7 @@ func runCommand() error {
 
 	if *signFlag {
 		if *verifyFlag || *listKeysFlag {
-			return errors.New("specify --help, --sign, --verify, or --list-keys")
+			return usageError
 		} else if len(*localUserOpt) == 0 {
 			return errors.New("specify a USER-ID to sign with")
 		} else {
@@ -98,9 +102,19 @@ func runCommand() error {
 		}
 	}
 
+	if *jwtFlag {
+		if *signFlag || *listKeysFlag {
+			return usageError
+		} else if len(*localUserOpt) == 0 {
+			return errors.New("specify a USER-ID to sign with")
+		} else {
+			return commandJwt()
+		}
+	}
+
 	if *verifyFlag {
 		if *signFlag || *listKeysFlag {
-			return errors.New("specify --help, --sign, --verify, or --list-keys")
+			return usageError
 		} else if len(*localUserOpt) > 0 {
 			return errors.New("local-user cannot be specified for verification")
 		} else if *detachSignFlag {
@@ -114,7 +128,7 @@ func runCommand() error {
 
 	if *listKeysFlag {
 		if *signFlag || *verifyFlag {
-			return errors.New("specify --help, --sign, --verify, or --list-keys")
+			return usageError
 		} else if len(*localUserOpt) > 0 {
 			return errors.New("local-user cannot be specified for list-keys")
 		} else if *detachSignFlag {
@@ -126,5 +140,5 @@ func runCommand() error {
 		}
 	}
 
-	return errors.New("specify --help, --sign, --verify, or --list-keys")
+	return usageError
 }
