@@ -24,18 +24,18 @@ func commandSign() error {
 	}
 
 	// Git is looking for "\n[GNUPG:] SIG_CREATED ", meaning we need to print a
-	// line before SIG_CREATED. BEGIN_SIGNING seems appropraite. GPG emits this,
+	// line before SIG_CREATED. BEGIN_SIGNING seems appropriate. GPG emits this,
 	// though GPGSM does not.
 	sBeginSigning.emit()
 
 	cert, err := userIdent.Certificate()
 	if err != nil {
-		return errors.Wrap(err, "failed to get idenity certificate")
+		return errors.Wrap(err, "failed to get identity certificate")
 	}
 
 	signer, err := userIdent.Signer()
 	if err != nil {
-		return errors.Wrap(err, "failed to get idenity signer")
+		return errors.Wrap(err, "failed to get identity signer")
 	}
 
 	var f io.ReadCloser
@@ -72,7 +72,7 @@ func commandSign() error {
 
 	chain, err := userIdent.CertificateChain()
 	if err != nil {
-		return errors.Wrap(err, "failed to get idenity certificate chain")
+		return errors.Wrap(err, "failed to get identity certificate chain")
 	}
 	if chain, err = certsForSignature(chain); err != nil {
 		return err
