@@ -6,6 +6,7 @@ import (
 	"crypto/x509"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/gofrs/uuid"
 	"github.com/golang-jwt/jwt/v4"
@@ -41,17 +42,23 @@ func commandJwt() error {
 		return errors.New("failed to create new UUID for JWT")
 	}
 
+	issuedAt := time.Now()
+	expireSeconds := 600
+
 	token := jwt.NewWithClaims(method, jwt.RegisteredClaims{
-		Issuer:    cert.Issuer.String(),
-		Subject:   cert.Subject.String(),
+		Issuer:    cert.Issuer.CommonName,
+		Subject:   cert.Subject.CommonName,
 		Audience:  []string{},
-		ExpiresAt: &jwt.NumericDate{cert.NotAfter},
-		NotBefore: &jwt.NumericDate{cert.NotBefore},
-		IssuedAt:  &jwt.NumericDate{cert.NotBefore},
+		ExpiresAt: &jwt.NumericDate{Time: issuedAt.Add(time.Second * time.Duration(expireSeconds))},
+		NotBefore: &jwt.NumericDate{Time: issuedAt},
+		IssuedAt:  &jwt.NumericDate{Time: issuedAt},
 		ID:        id.String(),
 	})
 
 	signingString, err := token.SigningString()
+	if err != nil {
+		return errors.New("failed to generate JWT signing string")
+	}
 
 	if !hash.Available() {
 		return fmt.Errorf("hash function not available: %s", hash)
@@ -72,6 +79,9 @@ func commandJwt() error {
 	signedJwt := strings.Join([]string{signingString, jwt.EncodeSegment(sigBytes)}, ".")
 
 	_, err = stdout.Write([]byte(signedJwt))
+	if err != nil {
+		return errors.Wrap(err, "failed to write out JWT")
+	}
 
 	return nil
 }
