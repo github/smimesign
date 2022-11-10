@@ -44,15 +44,16 @@ func GenerateNonce() *big.Int {
 }
 
 // Request is a TimeStampReq
-// 	TimeStampReq ::= SEQUENCE  {
-// 		version                      INTEGER  { v1(1) },
-// 		messageImprint               MessageImprint,
-// 			--a hash algorithm OID and the hash value of the data to be
-// 			--time-stamped
-// 		reqPolicy             TSAPolicyId              OPTIONAL,
-// 		nonce                 INTEGER                  OPTIONAL,
-// 		certReq               BOOLEAN                  DEFAULT FALSE,
-// 		extensions            [0] IMPLICIT Extensions  OPTIONAL  }
+//
+//	TimeStampReq ::= SEQUENCE  {
+//		version                      INTEGER  { v1(1) },
+//		messageImprint               MessageImprint,
+//			--a hash algorithm OID and the hash value of the data to be
+//			--time-stamped
+//		reqPolicy             TSAPolicyId              OPTIONAL,
+//		nonce                 INTEGER                  OPTIONAL,
+//		certReq               BOOLEAN                  DEFAULT FALSE,
+//		extensions            [0] IMPLICIT Extensions  OPTIONAL  }
 type Request struct {
 	Version        int
 	MessageImprint MessageImprint
@@ -110,11 +111,12 @@ func (req Request) Do(url string) (Response, error) {
 }
 
 // Response is a TimeStampResp
-// 	TimeStampResp ::= SEQUENCE  {
-// 		status                  PKIStatusInfo,
-// 		timeStampToken          TimeStampToken     OPTIONAL  }
 //
-// 	TimeStampToken ::= ContentInfo
+//	TimeStampResp ::= SEQUENCE  {
+//		status                  PKIStatusInfo,
+//		timeStampToken          TimeStampToken     OPTIONAL  }
+//
+//	TimeStampToken ::= ContentInfo
 type Response struct {
 	Status         PKIStatusInfo
 	TimeStampToken protocol.ContentInfo `asn1:"optional"`
@@ -156,49 +158,49 @@ func (r Response) Info() (Info, error) {
 	return ParseInfo(sd.EncapContentInfo)
 }
 
-// PKIStatusInfo ::= SEQUENCE {
-// 	status        PKIStatus,
-// 	statusString  PKIFreeText     OPTIONAL,
-// 	failInfo      PKIFailureInfo  OPTIONAL  }
+//	PKIStatusInfo ::= SEQUENCE {
+//		status        PKIStatus,
+//		statusString  PKIFreeText     OPTIONAL,
+//		failInfo      PKIFailureInfo  OPTIONAL  }
 //
-// PKIStatus ::= INTEGER {
-// 	granted                (0),
-// 		-- when the PKIStatus contains the value zero a TimeStampToken, as
-// 		requested, is present.
-// 	grantedWithMods        (1),
-// 		-- when the PKIStatus contains the value one a TimeStampToken,
-// 		with modifications, is present.
-// 	rejection              (2),
-// 	waiting                (3),
-// 	revocationWarning      (4),
-// 		-- this message contains a warning that a revocation is
-// 		-- imminent
-// 	revocationNotification (5)
-// 		-- notification that a revocation has occurred   }
+//	PKIStatus ::= INTEGER {
+//		granted                (0),
+//			-- when the PKIStatus contains the value zero a TimeStampToken, as
+//			requested, is present.
+//		grantedWithMods        (1),
+//			-- when the PKIStatus contains the value one a TimeStampToken,
+//			with modifications, is present.
+//		rejection              (2),
+//		waiting                (3),
+//		revocationWarning      (4),
+//			-- this message contains a warning that a revocation is
+//			-- imminent
+//		revocationNotification (5)
+//			-- notification that a revocation has occurred   }
 //
 // -- When the TimeStampToken is not present
 // -- failInfo indicates the reason why the
 // -- time-stamp request was rejected and
 // -- may be one of the following values.
 //
-// PKIFailureInfo ::= BIT STRING {
-// 	badAlg               (0),
-// 		-- unrecognized or unsupported Algorithm Identifier
-// 	badRequest           (2),
-// 		-- transaction not permitted or supported
-// 	badDataFormat        (5),
-// 		-- the data submitted has the wrong format
-// 	timeNotAvailable    (14),
-// 		-- the TSA's time source is not available
-// 	unacceptedPolicy    (15),
-// 		-- the requested TSA policy is not supported by the TSA.
-// 	unacceptedExtension (16),
-// 		-- the requested extension is not supported by the TSA.
-// 	addInfoNotAvailable (17)
-// 		-- the additional information requested could not be understood
-// 		-- or is not available
-// 	systemFailure       (25)
-// 		-- the request cannot be handled due to system failure  }
+//	PKIFailureInfo ::= BIT STRING {
+//		badAlg               (0),
+//			-- unrecognized or unsupported Algorithm Identifier
+//		badRequest           (2),
+//			-- transaction not permitted or supported
+//		badDataFormat        (5),
+//			-- the data submitted has the wrong format
+//		timeNotAvailable    (14),
+//			-- the TSA's time source is not available
+//		unacceptedPolicy    (15),
+//			-- the requested TSA policy is not supported by the TSA.
+//		unacceptedExtension (16),
+//			-- the requested extension is not supported by the TSA.
+//		addInfoNotAvailable (17)
+//			-- the additional information requested could not be understood
+//			-- or is not available
+//		systemFailure       (25)
+//			-- the request cannot be handled due to system failure  }
 type PKIStatusInfo struct {
 	Status       int
 	StatusString PKIFreeText    `asn1:"optional"`
@@ -267,25 +269,26 @@ func (ft PKIFreeText) Strings() ([]string, error) {
 }
 
 // Info is a TSTInfo
-// 	TSTInfo ::= SEQUENCE  {
-// 	  version                      INTEGER  { v1(1) },
-// 	  policy                       TSAPolicyId,
-// 	  messageImprint               MessageImprint,
-// 	    -- MUST have the same value as the similar field in
-// 	    -- TimeStampReq
-// 	  serialNumber                 INTEGER,
-// 	    -- Time-Stamping users MUST be ready to accommodate integers
-// 	    -- up to 160 bits.
-// 	  genTime                      GeneralizedTime,
-// 	  accuracy                     Accuracy                 OPTIONAL,
-// 	  ordering                     BOOLEAN             DEFAULT FALSE,
-// 	  nonce                        INTEGER                  OPTIONAL,
-// 	    -- MUST be present if the similar field was present
-// 	    -- in TimeStampReq.  In that case it MUST have the same value.
-// 	  tsa                          [0] GeneralName          OPTIONAL,
-// 	  extensions                   [1] IMPLICIT Extensions   OPTIONAL  }
 //
-// 	TSAPolicyId ::= OBJECT IDENTIFIER
+//	TSTInfo ::= SEQUENCE  {
+//	  version                      INTEGER  { v1(1) },
+//	  policy                       TSAPolicyId,
+//	  messageImprint               MessageImprint,
+//	    -- MUST have the same value as the similar field in
+//	    -- TimeStampReq
+//	  serialNumber                 INTEGER,
+//	    -- Time-Stamping users MUST be ready to accommodate integers
+//	    -- up to 160 bits.
+//	  genTime                      GeneralizedTime,
+//	  accuracy                     Accuracy                 OPTIONAL,
+//	  ordering                     BOOLEAN             DEFAULT FALSE,
+//	  nonce                        INTEGER                  OPTIONAL,
+//	    -- MUST be present if the similar field was present
+//	    -- in TimeStampReq.  In that case it MUST have the same value.
+//	  tsa                          [0] GeneralName          OPTIONAL,
+//	  extensions                   [1] IMPLICIT Extensions   OPTIONAL  }
+//
+//	TSAPolicyId ::= OBJECT IDENTIFIER
 type Info struct {
 	Version        int
 	Policy         asn1.ObjectIdentifier
@@ -328,14 +331,14 @@ func ParseInfo(eci protocol.EncapsulatedContentInfo) (Info, error) {
 // is before the specified time. For example, you might check that a signature
 // was made *before* a certificate's not-after date.
 func (i *Info) Before(t time.Time) bool {
-	return i.genTimeMax().Before(t)
+	return i.genTimeMax().Before(t) || i.genTimeMax().Equal(t)
 }
 
 // After checks if the earlier time the signature could have been generated at
 // is before the specified time. For example, you might check that a signature
 // was made *after* a certificate's not-before date.
 func (i *Info) After(t time.Time) bool {
-	return i.genTimeMin().After(t)
+	return i.genTimeMin().After(t) || i.genTimeMin().Equal(t)
 }
 
 // genTimeMax is the latest time at which the token could have been generated
@@ -350,9 +353,9 @@ func (i *Info) genTimeMin() time.Time {
 	return i.GenTime.Add(-i.Accuracy.Duration())
 }
 
-// MessageImprint ::= SEQUENCE  {
-//   hashAlgorithm                AlgorithmIdentifier,
-//   hashedMessage                OCTET STRING  }
+//	MessageImprint ::= SEQUENCE  {
+//	  hashAlgorithm                AlgorithmIdentifier,
+//	  hashedMessage                OCTET STRING  }
 type MessageImprint struct {
 	HashAlgorithm pkix.AlgorithmIdentifier
 	HashedMessage []byte
@@ -408,10 +411,10 @@ func (mi MessageImprint) Equal(other MessageImprint) bool {
 	return true
 }
 
-// Accuracy ::= SEQUENCE {
-//   seconds        INTEGER              OPTIONAL,
-//   millis     [0] INTEGER  (1..999)    OPTIONAL,
-//   micros     [1] INTEGER  (1..999)    OPTIONAL  }
+//	Accuracy ::= SEQUENCE {
+//	  seconds        INTEGER              OPTIONAL,
+//	  millis     [0] INTEGER  (1..999)    OPTIONAL,
+//	  micros     [1] INTEGER  (1..999)    OPTIONAL  }
 type Accuracy struct {
 	Seconds int `asn1:"optional"`
 	Millis  int `asn1:"tag:0,optional"`

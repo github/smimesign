@@ -321,6 +321,14 @@ func TestTSTInfo(t *testing.T) {
 		t.Fatalf("expected gentimemax %s, got %s", expectedGenTimeMin.String(), inf.genTimeMin().String())
 	}
 
+	// Timestamp before/after should be inclusive
+	if !inf.Before(inf.genTimeMax()) {
+		t.Errorf("before timestamp should be inclusive")
+	}
+	if !inf.After(inf.genTimeMin()) {
+		t.Errorf("after timestamp should be inclusive")
+	}
+
 	expectedOrdering := false
 	if inf.Ordering != expectedOrdering {
 		t.Fatalf("expected ordering %t, got %t", expectedOrdering, inf.Ordering)
