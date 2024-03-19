@@ -88,6 +88,99 @@ func TestSignerInfo(t *testing.T) {
 	}
 }
 
+func TestSignerInfoWithExtraAttrs(t *testing.T) {
+	priv, cert, err := pkcs12.Decode(fixturePFX, "asdf")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	msg := []byte("hello, world!")
+
+	eci, err := NewEncapsulatedContentInfo(oid.ContentTypeData, msg)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	sd, err := NewSignedData(eci)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	extraAttr, err := NewAttribute(asn1.ObjectIdentifier{1, 2, 3, 4, 5, 6}, []byte("this is an attribute"))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	chain := []*x509.Certificate{cert}
+	if err = sd.AddSignerInfoWithAttrs(Attributes{extraAttr}, chain, priv.(*ecdsa.PrivateKey)); err != nil {
+		t.Fatal(err)
+	}
+
+	der, err := sd.ContentInfoDER()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	ci, err := ParseContentInfo(der)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	sd2, err := ci.SignedDataContent()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	msg2, err := sd2.EncapContentInfo.DataEContent()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(msg, msg2) {
+		t.Fatal()
+	}
+
+	attrs := sd2.SignerInfos[0].SignedAttrs
+	found := false
+	for _, attr := range attrs {
+		if attr.Type.Equal(extraAttr.Type) {
+			if !bytes.Equal(attr.RawValue.FullBytes, extraAttr.RawValue.FullBytes) {
+				t.Fatalf("Extra signed attribute data round trip mismatch: want %#v, got %#v", extraAttr, attr)
+			}
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Fatalf("Extra attribute not present in signer info")
+	}
+
+	// Make detached
+	sd.EncapContentInfo.EContent = asn1.RawValue{}
+
+	der, err = sd.ContentInfoDER()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	ci, err = ParseContentInfo(der)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	sd2, err = ci.SignedDataContent()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	msg2, err = sd2.EncapContentInfo.DataEContent()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if msg2 != nil {
+		t.Fatal()
+	}
+}
+
 func TestEncapsulatedContentInfo(t *testing.T) {
 	ci, _ := ParseContentInfo(fixtureSignatureOpenSSLAttached)
 	sd, _ := ci.SignedDataContent()

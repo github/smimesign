@@ -626,6 +626,11 @@ func NewSignedData(eci EncapsulatedContentInfo) (*SignedData, error) {
 
 // AddSignerInfo adds a SignerInfo to the SignedData.
 func (sd *SignedData) AddSignerInfo(chain []*x509.Certificate, signer crypto.Signer) error {
+	return sd.AddSignerInfoWithAttrs(nil, chain, signer)
+}
+
+// AddSignerInfoWithAttrs adds a SignerInfo to the SignedData, allowing for the caller to supply extra Attributes to sign.
+func (sd *SignedData) AddSignerInfoWithAttrs(attrs []Attribute, chain []*x509.Certificate, signer crypto.Signer) error {
 	// figure out which certificate is associated with signer.
 	pub, err := x509.MarshalPKIXPublicKey(signer.Public())
 	if err != nil {
@@ -712,7 +717,7 @@ func (sd *SignedData) AddSignerInfo(chain []*x509.Certificate, signer crypto.Sig
 	}
 
 	// sort attributes to match required order in marshaled form
-	si.SignedAttrs, err = sortAttributes(stAttr, mdAttr, ctAttr)
+	si.SignedAttrs, err = sortAttributes(append([]Attribute{stAttr, mdAttr, ctAttr}, attrs...)...)
 	if err != nil {
 		return err
 	}
