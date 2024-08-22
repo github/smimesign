@@ -77,15 +77,16 @@ func resetIO() {
 
 // setup for a test
 //
-// - parses provided args
-// - sets the failer to be a function that fails the test. returns a reset
-//   function that should be deferred.
+//   - parses provided args
+//   - sets the failer to be a function that fails the test. returns a reset
+//     function that should be deferred.
 //
 // Example:
-//   func TestFoo(t *testing.T) {
-//     defer testSetup(t, "--sign")()
-//     ...
-//   }
+//
+//	func TestFoo(t *testing.T) {
+//	  defer testSetup(t, "--sign")()
+//	  ...
+//	}
 func testSetup(t *testing.T, args ...string) func() {
 	t.Helper()
 
