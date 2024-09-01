@@ -1,4 +1,4 @@
-package certstore
+package providers
 
 /*
 #cgo windows LDFLAGS: -lcrypt32 -lncrypt
@@ -75,8 +75,12 @@ type winStore struct {
 	store C.HCERTSTORE
 }
 
+func init() {
+	certstore.RegisterStore(openStore)
+}
+
 // openStore opens the current user's personal cert store.
-func openStore() (*winStore, error) {
+func openStore() (certstore.Store, error) {
 	storeName := unsafe.Pointer(stringToUTF16("MY"))
 	defer C.free(storeName)
 

@@ -3,13 +3,12 @@ package main
 import (
 	"bytes"
 	"crypto/x509"
-	"encoding/pem"
 	"fmt"
 	"io"
 	"os"
 
 	"github.com/certifi/gocertifi"
-	cms "github.com/github/smimesign/ietf-cms"
+	"github.com/github/smimesign/signature"
 	"github.com/pkg/errors"
 )
 
@@ -44,22 +43,7 @@ func verifyAttached() error {
 		return errors.Wrap(err, "failed to read signature")
 	}
 
-	// Try decoding as PEM
-	var der []byte
-	if blk, _ := pem.Decode(buf.Bytes()); blk != nil {
-		der = blk.Bytes
-	} else {
-		der = buf.Bytes()
-	}
-
-	// Parse signature
-	sd, err := cms.ParseSignedData(der)
-	if err != nil {
-		return errors.Wrap(err, "failed to parse signature")
-	}
-
-	// Verify signature
-	chains, err := sd.Verify(verifyOpts())
+	chains, err := signature.Verify(nil, buf.Bytes(), false, verifyOpts())
 	if err != nil {
 		if len(chains) > 0 {
 			emitBadSig(chains)
@@ -100,23 +84,9 @@ func verifyDetached() error {
 	}
 	defer f.Close()
 
-	buf := new(bytes.Buffer)
-	if _, err = io.Copy(buf, f); err != nil {
+	sig := new(bytes.Buffer)
+	if _, err = io.Copy(sig, f); err != nil {
 		return errors.Wrap(err, "failed to read signature file")
-	}
-
-	// Try decoding as PEM
-	var der []byte
-	if blk, _ := pem.Decode(buf.Bytes()); blk != nil {
-		der = blk.Bytes
-	} else {
-		der = buf.Bytes()
-	}
-
-	// Parse signature
-	sd, err := cms.ParseSignedData(der)
-	if err != nil {
-		return errors.Wrap(err, "failed to parse signature")
 	}
 
 	// Read in signed data
@@ -130,12 +100,12 @@ func verifyDetached() error {
 	}
 
 	// Verify signature
-	buf.Reset()
-	if _, err = io.Copy(buf, f); err != nil {
+	data := new(bytes.Buffer)
+	if _, err = io.Copy(data, f); err != nil {
 		return errors.Wrap(err, "failed to read message file")
 	}
 
-	chains, err := sd.VerifyDetached(buf.Bytes(), verifyOpts())
+	chains, err := signature.Verify(data.Bytes(), sig.Bytes(), true, verifyOpts())
 	if err != nil {
 		if len(chains) > 0 {
 			emitBadSig(chains)

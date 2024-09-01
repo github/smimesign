@@ -2,15 +2,13 @@ package main
 
 import (
 	"bytes"
-	"crypto/x509"
-	"encoding/pem"
 	"fmt"
 	"io"
 	"os"
 	"strings"
 
 	"github.com/github/smimesign/certstore"
-	cms "github.com/github/smimesign/ietf-cms"
+	"github.com/github/smimesign/signature"
 	"github.com/pkg/errors"
 )
 
@@ -28,16 +26,6 @@ func commandSign() error {
 	// though GPGSM does not.
 	sBeginSigning.emit()
 
-	cert, err := userIdent.Certificate()
-	if err != nil {
-		return errors.Wrap(err, "failed to get idenity certificate")
-	}
-
-	signer, err := userIdent.Signer()
-	if err != nil {
-		return errors.Wrap(err, "failed to get idenity signer")
-	}
-
 	var f io.ReadCloser
 	if len(fileArgs) == 1 {
 		if f, err = os.Open(fileArgs[0]); err != nil {
@@ -53,50 +41,19 @@ func commandSign() error {
 		return errors.Wrap(err, "failed to read message from stdin")
 	}
 
-	sd, err := cms.NewSignedData(dataBuf.Bytes())
+	sig, cert, err := signature.Sign(userIdent, dataBuf.Bytes(), signature.SignOptions{
+		Detached:           *detachSignFlag,
+		TimestampAuthority: *tsaOpt,
+		Armor:              *armorFlag,
+		IncludeCerts:       *includeCertsOpt,
+	})
 	if err != nil {
-		return errors.Wrap(err, "failed to create signed data")
-	}
-	if err = sd.Sign([]*x509.Certificate{cert}, signer); err != nil {
 		return errors.Wrap(err, "failed to sign message")
-	}
-	if *detachSignFlag {
-		sd.Detached()
-	}
-
-	if len(*tsaOpt) > 0 {
-		if err = sd.AddTimestamps(*tsaOpt); err != nil {
-			return errors.Wrap(err, "failed to add timestamp")
-		}
-	}
-
-	chain, err := userIdent.CertificateChain()
-	if err != nil {
-		return errors.Wrap(err, "failed to get idenity certificate chain")
-	}
-	if chain, err = certsForSignature(chain); err != nil {
-		return err
-	}
-	if err = sd.SetCertificates(chain); err != nil {
-		return errors.Wrap(err, "failed to set certificates")
-	}
-
-	der, err := sd.ToDER()
-	if err != nil {
-		return errors.Wrap(err, "failed to serialize signature")
 	}
 
 	emitSigCreated(cert, *detachSignFlag)
 
-	if *armorFlag {
-		err = pem.Encode(stdout, &pem.Block{
-			Type:  "SIGNED MESSAGE",
-			Bytes: der,
-		})
-	} else {
-		_, err = stdout.Write(der)
-	}
-	if err != nil {
+	if _, err := stdout.Write(sig); err != nil {
 		return errors.New("failed to write signature")
 	}
 
@@ -128,54 +85,4 @@ func findUserIdentity() (certstore.Identity, error) {
 	}
 
 	return nil, nil
-}
-
-// certsForSignature determines which certificates to include in the signature
-// based on the --include-certs option specified by the user.
-func certsForSignature(chain []*x509.Certificate) ([]*x509.Certificate, error) {
-	include := *includeCertsOpt
-
-	if include < -3 {
-		include = -2 // default
-	}
-	if include > len(chain) {
-		include = len(chain)
-	}
-
-	switch include {
-	case -3:
-		for i := len(chain) - 1; i > 0; i-- {
-			issuer, cert := chain[i], chain[i-1]
-
-			// remove issuer when cert has AIA extension
-			if bytes.Equal(issuer.RawSubject, cert.RawIssuer) && len(cert.IssuingCertificateURL) > 0 {
-				chain = chain[0:i]
-			}
-		}
-		return chainWithoutRoot(chain), nil
-	case -2:
-		return chainWithoutRoot(chain), nil
-	case -1:
-		return chain, nil
-	default:
-		return chain[0:include], nil
-	}
-}
-
-// Returns the provided chain, having removed the root certificate, if present.
-// This includes removing the cert itself if the chain is a single self-signed
-// cert.
-func chainWithoutRoot(chain []*x509.Certificate) []*x509.Certificate {
-	if len(chain) == 0 {
-		return chain
-	}
-
-	lastIdx := len(chain) - 1
-	last := chain[lastIdx]
-
-	if bytes.Equal(last.RawIssuer, last.RawSubject) {
-		return chain[0:lastIdx]
-	}
-
-	return chain
 }
