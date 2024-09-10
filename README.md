@@ -106,7 +106,7 @@ $ smimesign --list-keys
 
 **Tell git which key to use for signing**
 
-`smimesign --list-keys` might lists more than one suitable signing key. In this case you will have to configure git which key to use. This can be done through the `user.signingkey` configuration key:
+`smimesign --list-keys` might list more than one suitable signing key. In this case you will have to tell git which key to use. This can be done through the `user.signingkey` configuration key:
 
 ```bash
 $ git config --global user.signingkey <Key-ID>
