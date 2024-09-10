@@ -104,6 +104,16 @@ $ git config --get user.email
 $ smimesign --list-keys
 ```
 
+** Tell git which key to use for signing**
+
+If `smimesign --list-keys` lists more than one suitable signing key you will have to configure git which key to use by letting it know the key's `ID` from the `--list-keys` output:
+
+```bash
+$ git config --global user.signingkey <Key-ID>
+```
+
+Of course the configuration can also be done `--local` only.
+
 ## Smart cards (PIV/CAC/Yubikey)
 
 Many large organizations and government agencies distribute certificates and keys to end users via smart cards. These cards allow applications on the user's computer to use private keys for signing or encryption without giving them the ability to export those keys. The native certificate stores on both Windows and macOS can talk to smart cards, though special drivers or middleware may be required.
