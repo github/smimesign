@@ -107,3 +107,76 @@ func certEmails(cert *x509.Certificate) []string {
 
 	return emails
 }
+
+// keyUsageNames contains the mapping between a KeyUsage and its Name.
+var keyUsageNames = []struct {
+	keyUsage x509.KeyUsage
+	name     string
+}{
+	{x509.KeyUsageDigitalSignature, "DigitalSignature"},
+	{x509.KeyUsageContentCommitment, "ContentCommitment"},
+	{x509.KeyUsageKeyEncipherment, "KeyEncipherment"},
+	{x509.KeyUsageDataEncipherment, "DataEncipherment"},
+	{x509.KeyUsageKeyAgreement, "KeyAgreement"},
+	{x509.KeyUsageCertSign, "CertSign"},
+	{x509.KeyUsageCRLSign, "CRLSign"},
+	{x509.KeyUsageEncipherOnly, "EncipherOnly"},
+	{x509.KeyUsageDecipherOnly, "DecipherOnly"},
+}
+
+func keyUsageToNames(ku x509.KeyUsage) []string {
+
+	var kus []string
+
+	for _, k2n := range keyUsageNames {
+		if !(int(k2n.keyUsage)&int(ku) == 0) {
+			kus = append(kus, k2n.name)
+		}
+	}
+
+	return kus
+}
+
+// extKeyUsageNames contains the mapping between an ExtKeyUsage and its Name.
+var extKeyUsageNames = []struct {
+	extKeyUsage x509.ExtKeyUsage
+	name        string
+}{
+	{x509.ExtKeyUsageAny, "Any"},
+	{x509.ExtKeyUsageServerAuth, "ServerAuth"},
+	{x509.ExtKeyUsageClientAuth, "ClientAuth"},
+	{x509.ExtKeyUsageCodeSigning, "CodeSigning"},
+	{x509.ExtKeyUsageEmailProtection, "EmailProtection"},
+	{x509.ExtKeyUsageIPSECEndSystem, "IPSECEndSystem"},
+	{x509.ExtKeyUsageIPSECTunnel, "IPSECTunnel"},
+	{x509.ExtKeyUsageIPSECUser, "IPSECUser"},
+	{x509.ExtKeyUsageTimeStamping, "TimeStamping"},
+	{x509.ExtKeyUsageOCSPSigning, "OCSPSigning"},
+	{x509.ExtKeyUsageMicrosoftServerGatedCrypto, "MicrosoftServerGatedCrypto"},
+	{x509.ExtKeyUsageNetscapeServerGatedCrypto, "NetscapeServerGatedCrypto"},
+	{x509.ExtKeyUsageMicrosoftCommercialCodeSigning, "MicrosoftCommercialCodeSigning"},
+	{x509.ExtKeyUsageMicrosoftKernelCodeSigning, "MicrosoftKernelCodeSigning"},
+}
+
+// extKeyUsageToName take an ExtKeyUsage and returns its name
+func extKeyUsageToName(eku x509.ExtKeyUsage) (name string) {
+	for _, pair := range extKeyUsageNames {
+		if eku == pair.extKeyUsage {
+			return pair.name
+		}
+	}
+	return
+}
+
+// certExtKeyUsages extracts Key Usage fields from a certificate and returns them as string.
+func certExtKeyUsages(cert *x509.Certificate) []string {
+
+	var ekus []string
+
+	for _, eku := range cert.ExtKeyUsage {
+		ekus = append(ekus, extKeyUsageToName(eku))
+	}
+
+	return ekus
+
+}

@@ -36,6 +36,8 @@ var (
 	keyFormatOpt    = getopt.EnumLong("keyid-format", 0, []string{"long"}, "long", "select  how  to  display key IDs.", "{long}")
 	tsaOpt          = getopt.StringLong("timestamp-authority", 't', defaultTSA, "URL of RFC3161 timestamp authority to use for timestamping", "url")
 	includeCertsOpt = getopt.IntLong("include-certs", 0, -2, "-3 is the same as -2, but ommits issuer when cert has Authority Information Access extension. -2 includes all certs except root. -1 includes all certs. 0 includes no certs. 1 includes leaf cert. >1 includes n from the leaf. Default -2.", "n")
+	showExpiredOpt  = getopt.BoolLong("show-expired", 'e', "Also show expired certificates in --list-keys output (default is not to show expired certificates)")
+	onlyDigiSigOpt  = getopt.BoolLong("only-digisig", 0, "Show only certificates that include Key Usage 'Digital Signature' in --list-keys output")
 
 	// Remaining arguments
 	fileArgs []string
@@ -93,6 +95,10 @@ func runCommand() error {
 			return errors.New("specify --help, --sign, --verify, or --list-keys")
 		} else if len(*localUserOpt) == 0 {
 			return errors.New("specify a USER-ID to sign with")
+		} else if *showExpiredOpt {
+			return errors.New("show-expired cannot be specified for signing")
+		} else if *onlyDigiSigOpt {
+			return errors.New("only-digisig cannot be specified for signing")
 		} else {
 			return commandSign()
 		}
@@ -105,6 +111,10 @@ func runCommand() error {
 			return errors.New("local-user cannot be specified for verification")
 		} else if *detachSignFlag {
 			return errors.New("detach-sign cannot be specified for verification")
+		} else if *showExpiredOpt {
+			return errors.New("show-expired cannot be specified for verification")
+		} else if *onlyDigiSigOpt {
+			return errors.New("only-digisig cannot be specified for verification")
 		} else if *armorFlag {
 			return errors.New("armor cannot be specified for verification")
 		} else {
@@ -122,7 +132,7 @@ func runCommand() error {
 		} else if *armorFlag {
 			return errors.New("armor cannot be specified for list-keys")
 		} else {
-			return commandListKeys()
+			return commandListKeys(*showExpiredOpt, *onlyDigiSigOpt)
 		}
 	}
 
