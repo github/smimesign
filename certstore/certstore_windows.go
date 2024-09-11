@@ -64,10 +64,11 @@ const (
 // API will be used.
 //
 // Possible values are:
-//   0x00000000 —                                      — Only use CryptoAPI.
-//   0x00010000 — CRYPT_ACQUIRE_ALLOW_NCRYPT_KEY_FLAG  — Prefer CryptoAPI.
-//   0x00020000 — CRYPT_ACQUIRE_PREFER_NCRYPT_KEY_FLAG — Prefer CNG.
-//   0x00040000 — CRYPT_ACQUIRE_ONLY_NCRYPT_KEY_FLAG   — Only uyse CNG.
+//
+//	0x00000000 —                                      — Only use CryptoAPI.
+//	0x00010000 — CRYPT_ACQUIRE_ALLOW_NCRYPT_KEY_FLAG  — Prefer CryptoAPI.
+//	0x00020000 — CRYPT_ACQUIRE_PREFER_NCRYPT_KEY_FLAG — Prefer CNG.
+//	0x00040000 — CRYPT_ACQUIRE_ONLY_NCRYPT_KEY_FLAG   — Only uyse CNG.
 var winAPIFlag C.DWORD = C.CRYPT_ACQUIRE_PREFER_NCRYPT_KEY_FLAG
 
 // winStore is a wrapper around a C.HCERTSTORE.
@@ -637,7 +638,7 @@ func (c errCode) Error() string {
 	if cmsg == nil {
 		return fmt.Sprintf("Error %X", int(c))
 	}
-	defer C.LocalFree(C.HLOCAL(cmsg))
+	defer C.LocalFree(C.HLOCAL(unsafe.Pointer(cmsg)))
 
 	gomsg := C.GoString(cmsg)
 
