@@ -37,7 +37,7 @@ jobs:
           # We cd so that the binary ends up in the top level of the tar.
           cd build/macos && tar -czvf smimesign-macos-${{ env.GIT_VERSION }}.tgz smimesign
       - name: Upload build folder to the action
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           # Note: this artifact is shared across jobs:
           # https://github.com/actions/upload-artifact#uploading-to-the-same-artifact
@@ -122,7 +122,7 @@ jobs:
           mv build/amd64/smimesign.zip build/amd64/smimesign-windows-amd64-${{ env.GIT_VERSION }}.zip
           mv build/386/smimesign.zip build/386/smimesign-windows-386-${{ env.GIT_VERSION }}.zip
       - name: Upload build folder to the action
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           # Note: this artifact is shared across jobs:
           # https://github.com/actions/upload-artifact#uploading-to-the-same-artifact
