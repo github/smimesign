@@ -1,10 +1,13 @@
 on: [push, pull_request]
 name: Build binaries
+permissions:
+  contents: read
+  packages: write
 jobs:
   build-macos:
     strategy:
       matrix:
-        go-version: ["1.17"]
+        go-version: ["1.23"]
         os: [macos-latest]
     runs-on: ${{ matrix.os }}
     env:
@@ -34,15 +37,15 @@ jobs:
           # We cd so that the binary ends up in the top level of the tar.
           cd build/macos && tar -czvf smimesign-macos-${{ env.GIT_VERSION }}.tgz smimesign
       - name: Upload build folder to the action
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           # Note: this artifact is shared across jobs:
           # https://github.com/actions/upload-artifact#uploading-to-the-same-artifact
           name: build
           path: build/
       - name: Upload macOS files to the release
-        # Pinned hash from https://github.com/softprops/action-gh-release/releases/tag/v0.1.12
-        uses: softprops/action-gh-release@2d72d869af3bf23602f9593a1e3fd739b80ac1eb
+        # Pinned hash from https://github.com/softprops/action-gh-release/releases/tag/v2.0.8
+        uses: softprops/action-gh-release@c062e08bd532815e2082a85e87e3ef29c3e6d191
         if: startsWith(github.ref, 'refs/tags/v')
         with:
           files: |
@@ -50,7 +53,7 @@ jobs:
   build-windows:
     strategy:
       matrix:
-        go-version: ["1.17"]
+        go-version: ["1.23"]
         os: [windows-latest]
     runs-on: ${{ matrix.os }}
     env:
@@ -88,8 +91,8 @@ jobs:
         run: |
           GOARCH=amd64 go build -o "build/amd64/smimesign.exe" -ldflags "-X main.versionString=${{ env.GIT_VERSION }}"
       - name: Switch MinGW to x86
-        # Pinned hash from https://github.com/egor-tensin/setup-mingw/releases/tag/v2
-        uses: egor-tensin/setup-mingw@f3c5d799aadf8fa230ac67a422b01dd085bbc96b
+        # Pinned hash from https://github.com/egor-tensin/setup-mingw/releases/tag/v2.2.0
+        uses: egor-tensin/setup-mingw@84c781b557efd538dec66bde06988d81cd3138cf
         with:
           platform: x86
       - name: Build 386
@@ -119,15 +122,15 @@ jobs:
           mv build/amd64/smimesign.zip build/amd64/smimesign-windows-amd64-${{ env.GIT_VERSION }}.zip
           mv build/386/smimesign.zip build/386/smimesign-windows-386-${{ env.GIT_VERSION }}.zip
       - name: Upload build folder to the action
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           # Note: this artifact is shared across jobs:
           # https://github.com/actions/upload-artifact#uploading-to-the-same-artifact
           name: build
           path: build/
       - name: Upload Windows files to the release
-        # Pinned hash from https://github.com/softprops/action-gh-release/releases/tag/v0.1.12
-        uses: softprops/action-gh-release@2d72d869af3bf23602f9593a1e3fd739b80ac1eb
+        # Pinned hash from https://github.com/softprops/action-gh-release/releases/tag/v2.0.8
+        uses: softprops/action-gh-release@c062e08bd532815e2082a85e87e3ef29c3e6d191
         if: startsWith(github.ref, 'refs/tags/v')
         with:
           files: |
