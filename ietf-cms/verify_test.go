@@ -36,7 +36,7 @@ func ExampleSignedData() {
 
 func verifyOptionsForSignedData(sd *SignedData) (opts x509.VerifyOptions) {
 	// add self-signed cert as trusted root
-	certs, err := sd.psd.X509Certificates()
+	certs, err := sd.X509Certificates()
 	if err != nil {
 		panic(err)
 	}
@@ -46,7 +46,7 @@ func verifyOptionsForSignedData(sd *SignedData) (opts x509.VerifyOptions) {
 	}
 
 	// trust signing time
-	signingTime, err := sd.psd.SignerInfos[0].GetSigningTimeAttribute()
+	signingTime, err := sd.SignerInfos[0].GetSigningTimeAttribute()
 	if err != nil {
 		panic(err)
 	}

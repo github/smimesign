@@ -45,5 +45,5 @@ func SignDetached(data []byte, chain []*x509.Certificate, signer crypto.Signer) 
 // leaf certificate associated with the signer. Any additional intermediates
 // will also be added to the SignedData.
 func (sd *SignedData) Sign(chain []*x509.Certificate, signer crypto.Signer) error {
-	return sd.psd.AddSignerInfo(chain, signer)
+	return sd.AddSignerInfo(chain, signer)
 }

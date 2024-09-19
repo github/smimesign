@@ -16,7 +16,7 @@ import (
 //
 // WARNING: this function doesn't do any revocation checking.
 func (sd *SignedData) Verify(opts x509.VerifyOptions) ([][][]*x509.Certificate, error) {
-	econtent, err := sd.psd.EncapContentInfo.EContentValue()
+	econtent, err := sd.EncapContentInfo.EContentValue()
 	if err != nil {
 		return nil, err
 	}
@@ -35,18 +35,18 @@ func (sd *SignedData) Verify(opts x509.VerifyOptions) ([][][]*x509.Certificate, 
 //
 // WARNING: this function doesn't do any revocation checking.
 func (sd *SignedData) VerifyDetached(message []byte, opts x509.VerifyOptions) ([][][]*x509.Certificate, error) {
-	if sd.psd.EncapContentInfo.EContent.Bytes != nil {
+	if sd.EncapContentInfo.EContent.Bytes != nil {
 		return nil, errors.New("signature not detached")
 	}
 	return sd.verify(message, opts)
 }
 
 func (sd *SignedData) verify(econtent []byte, opts x509.VerifyOptions) ([][][]*x509.Certificate, error) {
-	if len(sd.psd.SignerInfos) == 0 {
+	if len(sd.SignerInfos) == 0 {
 		return nil, protocol.ASN1Error{Message: "no signatures found"}
 	}
 
-	certs, err := sd.psd.X509Certificates()
+	certs, err := sd.X509Certificates()
 	if err != nil {
 		return nil, err
 	}
@@ -64,16 +64,16 @@ func (sd *SignedData) verify(econtent []byte, opts x509.VerifyOptions) ([][][]*x
 	tsOpts := opts
 	tsOpts.KeyUsages = []x509.ExtKeyUsage{x509.ExtKeyUsageTimeStamping}
 
-	chains := make([][][]*x509.Certificate, 0, len(sd.psd.SignerInfos))
+	chains := make([][][]*x509.Certificate, 0, len(sd.SignerInfos))
 
-	for _, si := range sd.psd.SignerInfos {
+	for _, si := range sd.SignerInfos {
 		var signedMessage []byte
 
 		// SignedAttrs is optional if EncapContentInfo eContentType isn't id-data.
 		if si.SignedAttrs == nil {
 			// SignedAttrs may only be absent if EncapContentInfo eContentType is
 			// id-data.
-			if !sd.psd.EncapContentInfo.IsTypeData() {
+			if !sd.EncapContentInfo.IsTypeData() {
 				return nil, protocol.ASN1Error{Message: "missing SignedAttrs"}
 			}
 
@@ -87,7 +87,7 @@ func (sd *SignedData) verify(econtent []byte, opts x509.VerifyOptions) ([][][]*x
 			if err != nil {
 				return nil, err
 			}
-			if !siContentType.Equal(sd.psd.EncapContentInfo.EContentType) {
+			if !siContentType.Equal(sd.EncapContentInfo.EContentType) {
 				return nil, protocol.ASN1Error{Message: "invalid SignerInfo ContentType attribute"}
 			}
 

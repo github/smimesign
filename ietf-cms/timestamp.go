@@ -16,20 +16,20 @@ import (
 // in old messages signed with revoked keys.
 func (sd *SignedData) AddTimestamps(url string) error {
 	var (
-		attrs = make([]protocol.Attribute, len(sd.psd.SignerInfos))
+		attrs = make([]protocol.Attribute, len(sd.SignerInfos))
 		err   error
 	)
 
 	// Fetch all timestamp tokens before adding any to sd. This avoids a partial
 	// failure.
 	for i := range attrs {
-		if attrs[i], err = fetchTS(url, sd.psd.SignerInfos[i]); err != nil {
+		if attrs[i], err = fetchTS(url, sd.SignerInfos[i]); err != nil {
 			return err
 		}
 	}
 
 	for i := range attrs {
-		sd.psd.SignerInfos[i].UnsignedAttrs = append(sd.psd.SignerInfos[i].UnsignedAttrs, attrs[i])
+		sd.SignerInfos[i].UnsignedAttrs = append(sd.SignerInfos[i].UnsignedAttrs, attrs[i])
 	}
 
 	return nil
@@ -88,7 +88,7 @@ func getTimestamp(si protocol.SignerInfo, opts x509.VerifyOptions) (timestamp.In
 		return timestamp.Info{}, err
 	}
 
-	tsti, err := timestamp.ParseInfo(tst.psd.EncapContentInfo)
+	tsti, err := timestamp.ParseInfo(tst.EncapContentInfo)
 	if err != nil {
 		return timestamp.Info{}, err
 	}
