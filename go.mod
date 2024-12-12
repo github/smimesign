@@ -7,7 +7,7 @@ require (
 	github.com/pborman/getopt v0.0.0-20180811024354-2b5b3bfb099b
 	github.com/pkg/errors v0.8.1
 	github.com/stretchr/testify v1.3.0
-	golang.org/x/crypto v0.27.0
+	golang.org/x/crypto v0.31.0
 	golang.org/x/xerrors v0.0.0-20240903120638-7835f813f4da
 )
 
