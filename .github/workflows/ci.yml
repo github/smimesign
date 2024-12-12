@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*"
+  pull_request:
+
+jobs:
+  build:
+    name: ${{ matrix.friendlyName }} ${{ matrix.arch }} (go ${{ matrix.go }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        go: [1.12.x, 1.x, x]
+        os: [macos-10.15]
+        arch: [amd64, arm64]
+        include:
+          - os: macos-10.15
+            friendlyName: macOS
+          # - os: windows-2019
+          #   friendlyName: Windows
+        exclude:
+          # For some reason, arm64 doesn't seem to be well supported with go 1.12.x
+          - arch: arm64
+            go: 1.12.x
+    timeout-minutes: 60
+    env:
+      # Needed for macOS arm64 until hosted macos-11.0 runners become available
+      SDKROOT: /Library/Developer/CommandLineTools/SDKs/MacOSX11.1.sdk
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: Use go ${{ matrix.go }}
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ matrix.go }}
+
+      - name: Get app version
+        run: |
+          echo "GIT_VERSION=`git describe --tags`" >> $GITHUB_ENV
+
+      - name: Build
+        run: |
+          CGO_ENABLED=1 GOARCH=${{ matrix.arch }} GO111MODULE=on go build \
+            -o smimesign -ldflags "-X main.versionString=${{ env.GIT_VERSION }}" .
+          tar czf smimesign-${{ env.GIT_VERSION }}-macos-${{ matrix.arch }}.tgz \
+            smimesign
+        env:
+          TARGET_ARCH: ${{ matrix.arch }}
+
+      - name: Run tests
+        run: GO111MODULE=on go test -v ./...
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/') && matrix.go == '1.x'
+        with:
+          files: smimesign-${{ env.GIT_VERSION }}-macos-${{ matrix.arch }}.tgz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
