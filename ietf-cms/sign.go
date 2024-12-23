@@ -3,6 +3,8 @@ package cms
 import (
 	"crypto"
 	"crypto/x509"
+
+	"github.com/github/smimesign/ietf-cms/protocol"
 )
 
 // Sign creates a CMS SignedData from the content and signs it with signer. At
@@ -46,4 +48,9 @@ func SignDetached(data []byte, chain []*x509.Certificate, signer crypto.Signer) 
 // will also be added to the SignedData.
 func (sd *SignedData) Sign(chain []*x509.Certificate, signer crypto.Signer) error {
 	return sd.psd.AddSignerInfo(chain, signer)
+}
+
+// SignWithAttrs adds a signature with extra signed attributes to the SignedData.
+func (sd *SignedData) SignWithAttrs(attrs protocol.Attributes, chain []*x509.Certificate, signer crypto.Signer) error {
+	return sd.psd.AddSignerInfoWithAttrs(attrs, chain, signer)
 }
