@@ -3,7 +3,6 @@ package cms
 import (
 	"crypto/x509"
 	"encoding/pem"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"testing"
@@ -54,8 +53,11 @@ func TestSign(t *testing.T) {
 
 	// check that we're including signing time attribute
 	st, err := sd2.psd.SignerInfos[0].GetSigningTimeAttribute()
+	if err != nil {
+		t.Fatal(err)
+	}
 	if st.After(time.Now().Add(time.Second)) || st.Before(time.Now().Add(-time.Second)) {
-		t.Fatal("expected SigningTime to be now. Difference was", st.Sub(time.Now()))
+		t.Fatal("expected SigningTime to be now. Difference was", time.Until(st))
 	}
 }
 
@@ -98,8 +100,11 @@ func TestSignDetached(t *testing.T) {
 
 	// check that we're including signing time attribute
 	st, err := sd2.psd.SignerInfos[0].GetSigningTimeAttribute()
+	if err != nil {
+		t.Fatal(err)
+	}
 	if st.After(time.Now().Add(time.Second)) || st.Before(time.Now().Add(-time.Second)) {
-		t.Fatal("expected SigningTime to be now. Difference was", st.Sub(time.Now()))
+		t.Fatal("expected SigningTime to be now. Difference was", time.Until(st))
 	}
 }
 
@@ -117,7 +122,7 @@ func TestSignDetachedWithOpenSSL(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	signatureFile, err := ioutil.TempFile("", "TestSignatureOpenSSL_signatureFile_*")
+	signatureFile, err := os.CreateTemp("", "TestSignatureOpenSSL_signatureFile_*")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -130,7 +135,7 @@ func TestSignDetachedWithOpenSSL(t *testing.T) {
 	signatureFile.Close()
 
 	// write content to a temp file
-	contentFile, err := ioutil.TempFile("", "TestSignatureOpenSSL_contentFile_*")
+	contentFile, err := os.CreateTemp("", "TestSignatureOpenSSL_contentFile_*")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -143,7 +148,7 @@ func TestSignDetachedWithOpenSSL(t *testing.T) {
 	contentFile.Close()
 
 	// write CA cert to a temp file
-	certsFile, err := ioutil.TempFile("", "TestSignatureOpenSSL_certsFile_*")
+	certsFile, err := os.CreateTemp("", "TestSignatureOpenSSL_certsFile_*")
 	if err != nil {
 		t.Fatal(err)
 	}

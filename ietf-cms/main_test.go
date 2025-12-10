@@ -8,7 +8,6 @@ import (
 	"crypto/x509"
 	"encoding/asn1"
 	"io"
-	"io/ioutil"
 	"math/big"
 	"net/http"
 	"time"
@@ -161,6 +160,6 @@ func (thc *testHTTPClient) Do(httpReq *http.Request) (*http.Response, error) {
 	return &http.Response{
 		StatusCode: 200,
 		Header:     http.Header{"Content-Type": {"application/timestamp-reply"}},
-		Body:       ioutil.NopCloser(bytes.NewReader(respDER)),
+		Body:       io.NopCloser(bytes.NewReader(respDER)),
 	}, nil
 }

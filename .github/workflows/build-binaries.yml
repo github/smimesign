@@ -7,7 +7,7 @@ jobs:
   build-macos:
     strategy:
       matrix:
-        go-version: ["1.23"]
+        go-version: ["1.25"]
         os: [macos-latest]
     runs-on: ${{ matrix.os }}
     env:
@@ -53,7 +53,7 @@ jobs:
   build-windows:
     strategy:
       matrix:
-        go-version: ["1.23"]
+        go-version: ["1.25"]
         os: [windows-latest]
     runs-on: ${{ matrix.os }}
     env:
@@ -90,11 +90,11 @@ jobs:
         shell: bash
         run: |
           GOARCH=amd64 go build -o "build/amd64/smimesign.exe" -ldflags "-X main.versionString=${{ env.GIT_VERSION }}"
-      - name: Switch MinGW to x86
-        # Pinned hash from https://github.com/egor-tensin/setup-mingw/releases/tag/v2.2.0
-        uses: egor-tensin/setup-mingw@84c781b557efd538dec66bde06988d81cd3138cf
-        with:
-          platform: x86
+      #      - name: Switch MinGW to x86
+      #        # Pinned hash from https://github.com/egor-tensin/setup-mingw/releases/tag/v2.2.0
+      #        uses: egor-tensin/setup-mingw@84c781b557efd538dec66bde06988d81cd3138cf
+      #        with:
+      #          platform: x86
       - name: Build 386
         shell: bash
         run: |
