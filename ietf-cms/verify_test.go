@@ -254,7 +254,7 @@ F1Al5pA+giJh15T7Uu+p5O0J
 	}
 	pkcs7Cert, err := x509.ParseCertificate(pkcs7CertPEM.Bytes)
 	if err != nil {
-		t.Fatalf("failed to parse certificate: " + err.Error())
+		t.Fatalf("failed to parse certificate: %s",err.Error())
 	}
 
 	pkcs7Certs := []*x509.Certificate{pkcs7Cert}

@@ -9,6 +9,7 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
+	"os"
 	"os/exec"
 )
 
@@ -136,6 +137,30 @@ func toPKCS8(priv interface{}) []byte {
 	out := new(bytes.Buffer)
 	cmd.Stdout = out
 
+	if err := cmd.Run(); err == nil {
+		return out.Bytes()
+	}
+	// Fallback for newer openssl version: write to temp file and use it as input file
+	return toPKCS8TempFile(priv)
+}
+
+func toPKCS8TempFile(priv interface{}) []byte {
+	file, err := os.CreateTemp("", "tmpfile-*")
+	if err != nil {
+		panic(err)
+	}
+	defer os.Remove(file.Name())
+
+	if _, err = file.Write(toDER(priv)); err != nil {
+		panic(err)
+	}
+	file.Close()
+
+	cmd := exec.Command("openssl", "pkcs8", "-topk8", "-nocrypt", "-inform", "DER", "-in", file.Name())
+
+	out := new(bytes.Buffer)
+	cmd.Stdout = out
+	
 	if err := cmd.Run(); err != nil {
 		panic(err)
 	}
