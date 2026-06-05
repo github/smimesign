@@ -89,6 +89,61 @@ func ImportDeleteHelper(t *testing.T, i *fakeca.Identity) {
 	})
 }
 
+func TestSignerRSAPSS(t *testing.T) {
+	withIdentity(t, leafRSA, func(ident Identity) {
+		signer, err := ident.Signer()
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		// RSA-PSS with SHA-256 (used by TLS 1.3 CertificateVerify)
+		sha256Digest := sha256.Sum256([]byte("hello"))
+		pssOpts := &rsa.PSSOptions{
+			SaltLength: rsa.PSSSaltLengthEqualsHash,
+			Hash:       crypto.SHA256,
+		}
+		sig, err := signer.Sign(rand.Reader, sha256Digest[:], pssOpts)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		pub := signer.Public().(*rsa.PublicKey)
+		if err := rsa.VerifyPSS(pub, crypto.SHA256, sha256Digest[:], sig, pssOpts); err != nil {
+			t.Fatalf("PSS SHA-256 signature verification failed: %v", err)
+		}
+
+		// RSA-PSS with SHA-384
+		sha384Digest := sha512.Sum384([]byte("hello"))
+		pssOpts384 := &rsa.PSSOptions{
+			SaltLength: rsa.PSSSaltLengthEqualsHash,
+			Hash:       crypto.SHA384,
+		}
+		sig, err = signer.Sign(rand.Reader, sha384Digest[:], pssOpts384)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if err := rsa.VerifyPSS(pub, crypto.SHA384, sha384Digest[:], sig, pssOpts384); err != nil {
+			t.Fatalf("PSS SHA-384 signature verification failed: %v", err)
+		}
+
+		// RSA-PSS with SHA-512
+		sha512Digest := sha512.Sum512([]byte("hello"))
+		pssOpts512 := &rsa.PSSOptions{
+			SaltLength: rsa.PSSSaltLengthEqualsHash,
+			Hash:       crypto.SHA512,
+		}
+		sig, err = signer.Sign(rand.Reader, sha512Digest[:], pssOpts512)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if err := rsa.VerifyPSS(pub, crypto.SHA512, sha512Digest[:], sig, pssOpts512); err != nil {
+			t.Fatalf("PSS SHA-512 signature verification failed: %v", err)
+		}
+	})
+}
+
 func TestSignerRSA(t *testing.T) {
 	rsaPriv, ok := leafRSA.PrivateKey.(*rsa.PrivateKey)
 	if !ok {
