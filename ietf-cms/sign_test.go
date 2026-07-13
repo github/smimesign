@@ -33,7 +33,7 @@ func TestSign(t *testing.T) {
 	}
 
 	// test that we're including whole chain in sd
-	sdCerts, err := sd2.psd.X509Certificates()
+	sdCerts, err := sd2.X509Certificates()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -53,7 +53,7 @@ func TestSign(t *testing.T) {
 	}
 
 	// check that we're including signing time attribute
-	st, err := sd2.psd.SignerInfos[0].GetSigningTimeAttribute()
+	st, err := sd2.SignerInfos[0].GetSigningTimeAttribute()
 	if st.After(time.Now().Add(time.Second)) || st.Before(time.Now().Add(-time.Second)) {
 		t.Fatal("expected SigningTime to be now. Difference was", st.Sub(time.Now()))
 	}
@@ -77,7 +77,7 @@ func TestSignDetached(t *testing.T) {
 	}
 
 	// test that we're including whole chain in sd
-	sdCerts, err := sd2.psd.X509Certificates()
+	sdCerts, err := sd2.X509Certificates()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -97,7 +97,7 @@ func TestSignDetached(t *testing.T) {
 	}
 
 	// check that we're including signing time attribute
-	st, err := sd2.psd.SignerInfos[0].GetSigningTimeAttribute()
+	st, err := sd2.SignerInfos[0].GetSigningTimeAttribute()
 	if st.After(time.Now().Add(time.Second)) || st.Before(time.Now().Add(-time.Second)) {
 		t.Fatal("expected SigningTime to be now. Difference was", st.Sub(time.Now()))
 	}
