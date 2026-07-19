@@ -102,7 +102,10 @@ func (req Request) Do(url string) (Response, error) {
 		return nilResp, fmt.Errorf("Bad content-type: %s", ct)
 	}
 
-	buf := bytes.NewBuffer(make([]byte, 0, httpResp.ContentLength))
+	buf := new(bytes.Buffer)
+	if httpResp.ContentLength > 0 {
+		buf = bytes.NewBuffer(make([]byte, 0, httpResp.ContentLength))
+	}
 	if _, err = io.Copy(buf, httpResp.Body); err != nil {
 		return nilResp, err
 	}
