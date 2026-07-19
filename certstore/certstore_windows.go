@@ -361,14 +361,16 @@ func (wpk *winPrivateKey) Sign(rand io.Reader, digest []byte, opts crypto.Signer
 	if wpk.capiProv != 0 {
 		return wpk.capiSignHash(opts.HashFunc(), digest)
 	} else if wpk.cngHandle != 0 {
-		return wpk.cngSignHash(opts.HashFunc(), digest)
+		return wpk.cngSignHash(opts, digest)
 	} else {
 		return nil, errors.New("bad private key")
 	}
 }
 
 // cngSignHash signs a digest using the CNG APIs.
-func (wpk *winPrivateKey) cngSignHash(hash crypto.Hash, digest []byte) ([]byte, error) {
+func (wpk *winPrivateKey) cngSignHash(opts crypto.SignerOpts, digest []byte) ([]byte, error) {
+	hash := opts.HashFunc()
+
 	if len(digest) != hash.Size() {
 		return nil, errors.New("bad digest for hash")
 	}
@@ -384,23 +386,43 @@ func (wpk *winPrivateKey) cngSignHash(hash crypto.Hash, digest []byte) ([]byte, 
 		sigLen = C.DWORD(0)
 	)
 
-	// setup pkcs1v1.5 padding for RSA
+	// setup padding for RSA
 	if _, isRSA := wpk.publicKey.(*rsa.PublicKey); isRSA {
-		flags |= C.BCRYPT_PAD_PKCS1
-		padInfo := C.BCRYPT_PKCS1_PADDING_INFO{}
-		padPtr = unsafe.Pointer(&padInfo)
+		_, isPSS := opts.(*rsa.PSSOptions)
+		if isPSS {
+			flags |= C.BCRYPT_PAD_PSS
+			padInfo := C.BCRYPT_PSS_PADDING_INFO{
+				cbSalt: C.ULONG(hash.Size()),
+			}
+			padPtr = unsafe.Pointer(&padInfo)
 
-		switch hash {
-		case crypto.SHA1:
-			padInfo.pszAlgId = BCRYPT_SHA1_ALGORITHM
-		case crypto.SHA256:
-			padInfo.pszAlgId = BCRYPT_SHA256_ALGORITHM
-		case crypto.SHA384:
-			padInfo.pszAlgId = BCRYPT_SHA384_ALGORITHM
-		case crypto.SHA512:
-			padInfo.pszAlgId = BCRYPT_SHA512_ALGORITHM
-		default:
-			return nil, ErrUnsupportedHash
+			switch hash {
+			case crypto.SHA256:
+				padInfo.pszAlgId = BCRYPT_SHA256_ALGORITHM
+			case crypto.SHA384:
+				padInfo.pszAlgId = BCRYPT_SHA384_ALGORITHM
+			case crypto.SHA512:
+				padInfo.pszAlgId = BCRYPT_SHA512_ALGORITHM
+			default:
+				return nil, ErrUnsupportedHash
+			}
+		} else {
+			flags |= C.BCRYPT_PAD_PKCS1
+			padInfo := C.BCRYPT_PKCS1_PADDING_INFO{}
+			padPtr = unsafe.Pointer(&padInfo)
+
+			switch hash {
+			case crypto.SHA1:
+				padInfo.pszAlgId = BCRYPT_SHA1_ALGORITHM
+			case crypto.SHA256:
+				padInfo.pszAlgId = BCRYPT_SHA256_ALGORITHM
+			case crypto.SHA384:
+				padInfo.pszAlgId = BCRYPT_SHA384_ALGORITHM
+			case crypto.SHA512:
+				padInfo.pszAlgId = BCRYPT_SHA512_ALGORITHM
+			default:
+				return nil, ErrUnsupportedHash
+			}
 		}
 	}
 
