@@ -97,3 +97,25 @@ func TestBer2Der_NestedMultipleIndefinite(t *testing.T) {
 		t.Errorf("Resulting DER has trailing data: % X", rest)
 	}
 }
+
+func TestBer2Der_EmptyIndefinite(t *testing.T) {
+	fixtures := []struct {
+		Name     string
+		Input    []byte
+		Expected []byte
+	}{
+		{"empty sequence", []byte{0x30, 0x80, 0x00, 0x00}, []byte{0x30, 0x00}},
+		{"empty set followed by sibling", []byte{0x30, 0x80, 0x31, 0x80, 0x00, 0x00, 0x02, 0x01, 0x01, 0x00, 0x00}, []byte{0x30, 0x05, 0x31, 0x00, 0x02, 0x01, 0x01}},
+	}
+
+	for _, fixture := range fixtures {
+		der, err := BER2DER(fixture.Input)
+		if err != nil {
+			t.Errorf("%s: ber2der failed with error: %v", fixture.Name, err)
+			continue
+		}
+		if !bytes.Equal(der, fixture.Expected) {
+			t.Errorf("%s: ber2der result did not match.\n\tExpected: % X\n\tActual: % X", fixture.Name, fixture.Expected, der)
+		}
+	}
+}
